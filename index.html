@@ -83,7 +83,7 @@
             <h1 class="text-2xl font-bold text-starlight-cyan tracking-wider">Starlight Care</h1>
             <p class="text-xs text-gray-400 mt-1">โรงพยาบาลทับคล้อ</p>
             
-            <div class="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-space-950 border border-white/10 text-[11px]">
+            <div onclick="openDbDiagnosticsModal()" class="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-space-950 border border-white/10 text-[11px] cursor-pointer hover:border-starlight-cyan/40 transition">
                 <span id="db-status-dot" class="w-2.5 h-2.5 rounded-full bg-yellow-500 animate-ping"></span>
                 <span id="db-status-text" class="text-gray-300">กำลังตรวจสอบระบบ...</span>
             </div>
@@ -97,6 +97,7 @@
             <div class="pt-4 pb-1">
                 <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider pl-3">ระบบจัดการผู้ป่วย</p>
             </div>
+            <!-- RESTORED: Patient List navigation in sidebar -->
             <button onclick="switchView('patient-list')" id="nav-patient-list" class="nav-btn w-full flex items-center p-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">
                 <i class="fa-solid fa-users w-6"></i> รายชื่อผู้ป่วย & แผนเยี่ยมบ้าน
             </button>
@@ -141,9 +142,9 @@
 
     <!-- Mobile Nav Header -->
     <div class="md:hidden fixed top-0 left-0 w-full glass-panel z-20 flex justify-between items-center p-4 rounded-none border-x-0 border-t-0 no-print">
-        <h1 class="text-lg font-bold text-starlight-cyan"><i class="fa-solid fa-hands-holding-circle text-starlight-gold"></i> Starlight</h1>
+        <h1 class="text-lg font-bold text-starlight-cyan" onclick="openDbDiagnosticsModal()"><i class="fa-solid fa-hands-holding-circle text-starlight-gold"></i> Starlight</h1>
         <div class="flex items-center gap-4">
-            <span id="db-status-dot-mobile" class="w-2.5 h-2.5 rounded-full bg-yellow-500"></span>
+            <span id="db-status-dot-mobile" class="w-2.5 h-2.5 rounded-full bg-yellow-500" onclick="openDbDiagnosticsModal()"></span>
             <div class="flex space-x-4 text-xl text-gray-400">
                 <button onclick="switchView('dashboard')"><i class="fa-solid fa-chart-pie"></i></button>
                 <button onclick="switchView('patient-list')"><i class="fa-solid fa-users"></i></button>
@@ -700,6 +701,70 @@
         </div>
     </div>
 
+    <!-- DATABASE DIAGNOSTICS MODAL -->
+    <div id="db-diagnostics-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden no-print">
+        <div class="glass-panel p-6 max-w-2xl w-full m-4 border border-starlight-cyan/40 bg-space-950 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-white/10 pb-4 mb-4">
+                <h3 class="text-xl font-bold text-starlight-cyan"><i class="fa-solid fa-database text-starlight-gold mr-2"></i> ศูนย์ช่วยวิเคราะห์โครงสร้างฐานข้อมูล Supabase</h3>
+                <button type="button" onclick="closeDbDiagnosticsModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-times text-lg"></i></button>
+            </div>
+
+            <div class="space-y-4 text-sm">
+                <div class="p-3 rounded-lg bg-white/5 border border-white/10">
+                    <p class="font-medium text-white mb-1">สถานะระบบเชื่อมต่อคลาวด์:</p>
+                    <p id="diagnostic-db-status" class="text-yellow-400 font-bold">รอการรันระบบตรวจจับการเชื่อมต่อ...</p>
+                    <p id="diagnostic-db-error" class="text-red-400 mt-1 text-xs break-all"></p>
+                </div>
+
+                <div class="p-3 rounded-lg bg-starlight-cyan/10 border border-starlight-cyan/30 text-xs">
+                    <h4 class="font-bold text-starlight-cyan mb-2"><i class="fa-solid fa-circle-info"></i> ทำไมเชื่อมต่อล้มเหลว?</h4>
+                    <ul class="list-disc list-inside space-y-1 text-gray-300">
+                        <li>ตาราง `pallipatients` ยังไม่ถูกสร้างขึ้นมาในฐานข้อมูล Supabase ของคุณ</li>
+                        <li>คุณยังไม่ได้รัน SQL Script เพื่อจัดเตรียมฟิลด์สำหรับเก็บข้อมูลเยี่ยมบ้านและเวชระเบียน</li>
+                        <li>คีย์เชื่อมโยง Anon Key ในระบบหมดอายุ หรือสิทธิ์เข้าถึง (RLS) ล็อคไว้</li>
+                    </ul>
+                </div>
+
+                <div class="space-y-1">
+                    <div class="flex justify-between items-center">
+                        <label class="block text-xs font-bold text-starlight-gold"><i class="fa-solid fa-code"></i> คัดลอกโค้ด SQL ด้านล่างนี้ไปรันใน Supabase SQL Editor:</label>
+                        <button onclick="copySQLScript()" class="bg-starlight-cyan text-space-950 font-bold text-[10px] px-2 py-1 rounded hover:bg-white transition"><i class="fa-solid fa-copy"></i> คัดลอก SQL</button>
+                    </div>
+                    <textarea id="db-sql-code" rows="7" readonly class="w-full p-2 bg-black text-green-400 font-mono text-[11px] rounded border border-white/10 leading-relaxed resize-none">
+CREATE TABLE IF NOT EXISTS pallipatients (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    age INT,
+    cid TEXT,
+    hn TEXT UNIQUE NOT NULL,
+    right_care TEXT,
+    right_care_other TEXT,
+    address JSONB,
+    pcu TEXT,
+    pcu_other TEXT,
+    disease TEXT,
+    disease_other TEXT,
+    pps INT,
+    diagnosis TEXT,
+    udx TEXT[],
+    status TEXT DEFAULT 'Active',
+    is_pinned BOOLEAN DEFAULT false,
+    pinned_reason TEXT DEFAULT '',
+    insurance_sent BOOLEAN DEFAULT false,
+    acp TEXT DEFAULT '',
+    morphine_records JSONB DEFAULT '[]',
+    daily_records JSONB DEFAULT '[]',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);</textarea>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-4 border-t border-white/10 mt-4">
+                <button type="button" onclick="closeDbDiagnosticsModal()" class="px-5 py-2 rounded-lg bg-starlight-cyan text-space-950 font-bold hover:bg-white transition text-xs">ตกลง เข้าใจแล้ว</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal for Adding Medication to Narcotic 2 Form -->
     <div id="narc2-add-med-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden no-print">
         <div class="glass-panel p-6 max-w-lg w-full m-4 border border-pink-500/40 bg-space-950">
@@ -781,6 +846,7 @@
         
         let supabaseClient = null;
         let isDbConnected = false;
+        let dbErrorMessage = "";
 
         let patients = [];
         let regUdxList = [];
@@ -849,9 +915,10 @@
         async function initSupabase() {
             try {
                 if (typeof supabase === 'undefined') {
-                    throw new Error("Supabase library not loaded.");
+                    throw new Error("Supabase Library is not loaded. Please check your internet connection.");
                 }
                 supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                // Attempt query to verify table existance
                 const { data, error } = await supabaseClient.from('pallipatients').select('id').limit(1);
                 if (error) throw error;
                 
@@ -860,6 +927,7 @@
             } catch (err) {
                 console.error("Supabase connection failed:", err.message);
                 isDbConnected = false;
+                dbErrorMessage = err.message;
                 updateDbBadge(false, err.message);
             }
         }
@@ -867,12 +935,25 @@
         function updateDbBadge(online, errMessage = "") {
             const dot = document.getElementById('db-status-dot');
             const txt = document.getElementById('db-status-text');
+            const dotMobile = document.getElementById('db-status-dot-mobile');
+            
+            const diagnosticStatus = document.getElementById('diagnostic-db-status');
+            const diagnosticError = document.getElementById('diagnostic-db-error');
+
             if (online) {
                 if(dot) dot.className = "w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_8px_#4ade80]";
                 if(txt) { txt.innerText = "Supabase: Connected"; txt.className = "text-green-400 font-semibold"; }
+                if(dotMobile) dotMobile.className = "w-2.5 h-2.5 rounded-full bg-green-500";
+                if(diagnosticStatus) diagnosticStatus.innerHTML = '<span class="text-green-400">เชื่อมต่อสำเร็จ (Online)</span>';
+                if(diagnosticError) diagnosticError.innerText = '';
             } else {
                 if(dot) dot.className = "w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_#f87171] animate-pulse";
-                if(txt) { txt.innerText = `Offline (${errMessage.substring(0, 15)})`; txt.className = "text-red-400 font-semibold"; }
+                if(txt) { txt.innerText = `Offline (รันโหมดออฟไลน์)`; txt.className = "text-red-400 font-semibold"; }
+                if(dotMobile) dotMobile.className = "w-2.5 h-2.5 rounded-full bg-red-500";
+                if(diagnosticStatus) diagnosticStatus.innerHTML = '<span class="text-red-400">ออฟไลน์ (Offline Fallback)</span>';
+                if(diagnosticError) {
+                    diagnosticError.innerText = `เหตุผล: ${errMessage || "ไม่พบตารางในฐานข้อมูล หรือคีย์ไม่ถูกต้อง"}`;
+                }
             }
         }
 
@@ -1004,13 +1085,19 @@
         function getPatientChecklist(patient) {
             let checklist = [];
             let records = patient.dailyRecords || [];
+            let visitRecords = records.filter(r => r.mode === 'Visit');
             
             for (let i = 1; i <= 6; i++) {
-                let found = records.find(r => r.mode === 'Visit' && r.is_checklist && r.visit_no === i);
+                // First try matching explicitly by visit_no, then fallback to index order
+                let found = visitRecords.find(r => r.is_checklist && r.visit_no === i);
+                if (!found && visitRecords[i - 1] && !visitRecords[i - 1].is_checklist) {
+                    found = visitRecords[i - 1];
+                }
+
                 if (found) {
                     checklist.push({
                         visit_no: i,
-                        completed: found.completed === true || found.completed === 'true',
+                        completed: found.completed !== undefined ? (found.completed === true || found.completed === 'true') : true,
                         date: found.date || '',
                         visitor: found.visitor || 'รพ.ทับคล้อ'
                     });
@@ -1957,6 +2044,26 @@
             
             document.getElementById('smart-opd-output').value = fullNote;
             showToast("ร่างประมวลผลข้อเขียนอัจฉริยะสำเร็จ!");
+        }
+
+        function openDbDiagnosticsModal() {
+            document.getElementById('db-diagnostics-modal').classList.remove('hidden');
+            updateDbBadge(isDbConnected, dbErrorMessage);
+        }
+
+        function closeDbDiagnosticsModal() {
+            document.getElementById('db-diagnostics-modal').classList.add('hidden');
+        }
+
+        function copySQLScript() {
+            const code = document.getElementById('db-sql-code');
+            const temp = document.createElement('textarea');
+            temp.value = code.value;
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand('copy');
+            document.body.removeChild(temp);
+            showToast('คัดลอก SQL Script สำเร็จ นำไปวางใน Supabase ได้ทันที');
         }
 
         function copySmartOPDNote() {
