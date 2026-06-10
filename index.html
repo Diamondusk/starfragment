@@ -227,6 +227,13 @@
             <button onclick="switchView('document-center')" id="nav-document-center" class="nav-btn w-full flex items-center p-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">
                 <i class="fa-solid fa-folder-open w-6"></i> คลังเอกสาร & สารเสพติด
             </button>
+
+            <div class="pt-4 pb-1">
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider pl-3">ผู้ช่วยแพทย์อัจฉริยะ</p>
+            </div>
+            <button onclick="switchView('smart-opd')" id="nav-smart-opd" class="nav-btn w-full flex items-center p-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">
+                <i class="fa-solid fa-robot w-6"></i> Smart OPD ร่างข้อเขียน
+            </button>
         </nav>
 
         <div class="p-4 border-t border-starlight-cyan/20 shrink-0 bg-space-950/80">
@@ -251,6 +258,7 @@
                 <button onclick="switchView('dashboard')"><i class="fa-solid fa-chart-pie"></i></button>
                 <button onclick="switchView('patient-register')"><i class="fa-solid fa-user-plus"></i></button>
                 <button onclick="switchView('document-center')"><i class="fa-solid fa-folder-open text-starlight-cyan"></i></button>
+                <button onclick="switchView('smart-opd')"><i class="fa-solid fa-robot text-starlight-gold"></i></button>
             </div>
         </div>
     </div>
@@ -652,6 +660,34 @@
             </div>
         </section>
 
+        <!-- SECTION 4: SMART OPD GENERATOR -->
+        <section id="smart-opd" class="view-section h-full max-w-4xl mx-auto pb-12">
+            <h2 class="text-3xl font-extrabold text-white mb-2"><i class="fa-solid fa-robot text-starlight-gold mr-2"></i> Smart OPD ร่างประมวลผลข้อเขียนอัจฉริยะ</h2>
+            <p class="text-gray-400 mb-8">กรอก HN ของผู้ป่วยเพื่อดึงข้อมูลและสรุปสำหรับคัดลอกลง Progress Note หรือ OPD Card</p>
+
+            <div class="glass-panel p-6 mb-6 border-l-4 border-starlight-gold">
+                <div class="flex flex-col md:flex-row gap-4 items-end">
+                    <div class="flex-1 w-full">
+                        <label class="block text-sm text-gray-400 mb-2">ระบุ HN ของผู้ป่วยที่ต้องการดึงข้อมูล</label>
+                        <input type="text" id="smart-opd-hn" class="glass-input w-full p-3 rounded-lg text-lg text-starlight-cyan font-bold" placeholder="เช่น 1234567" value="1234567">
+                    </div>
+                    <button onclick="generateSmartOPDNote()" class="bg-starlight-gold text-space-950 font-bold px-6 py-3 rounded-lg hover:bg-white transition flex items-center gap-2 shrink-0">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> ประมวลผลข้อมูล
+                    </button>
+                </div>
+            </div>
+
+            <div class="glass-panel p-6 border border-white/10 relative">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold text-starlight-cyan">ผลลัพธ์การร่างข้อเขียน (สร้างอัตโนมัติ)</h3>
+                    <button onclick="copySmartOPDNote()" class="bg-starlight-cyan/20 text-starlight-cyan hover:bg-starlight-cyan hover:text-space-950 px-4 py-2 rounded-lg transition font-bold text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-copy"></i> คัดลอกข้อมูล
+                    </button>
+                </div>
+                <textarea id="smart-opd-output" rows="11" class="glass-input w-full p-4 rounded-lg text-sm text-white leading-relaxed resize-y" placeholder="ข้อมูลจะปรากฏที่นี่หลังจากกดปุ่มประมวลผล..."></textarea>
+            </div>
+        </section>
+
     </main>
 
     <!-- Modal for Adding Medication to Narcotic 2 Form -->
@@ -761,6 +797,7 @@
                 udx: ['DM Type 2', 'Hypertension'], status: 'Active',
                 pps: 40, isPinned: true, pinnedReason: 'ใกล้เสียชีวิต (Active Dying)',
                 insuranceSent: true, acp: 'No CPR, No Tube, Comfort Care',
+                contacts: [{name: 'คุณสมหญิง (ภรรยา)', tel: '089-123-4567'}],
                 morphine_records: [
                     { datetime: '2026-06-02T08:00', type: 'Breakthrough dose', med: 'Morphine syrup 2 mg/ml', dose: 2.5, qty: '1 amp', route: 'Subcutaneous injection', pain_before: 6, pain_after: 2 }
                 ]
@@ -821,7 +858,8 @@
                 isPinned: p.is_pinned !== undefined ? p.is_pinned : (p.isPinned || false), 
                 pinnedReason: p.pinned_reason || p.pinnedReason || '',
                 insuranceSent: p.insurance_sent || p.insuranceSent || false,
-                acp: p.acp || '', morphineRecords: p.morphine_records || []
+                acp: p.acp || '', morphineRecords: p.morphine_records || [],
+                contacts: p.contacts || [{name: 'ญาติ (ผู้ดูแลหลัก)', tel: 'ไม่ระบุเบอร์ติดต่อ'}]
             }));
         }
 
@@ -1114,58 +1152,68 @@
                         หอผู้ป่วยประคับประคอง โรงพยาบาลทับคล้อ
                     </div>
                     
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-                        <div>
-                            <b>ชื่อ-สกุล:</b> ${p.name} <br>
-                            <b>อายุ:</b> ${p.age} ปี &nbsp;&nbsp;&nbsp; <b>HN:</b> ${p.hn}
-                        </div>
-                        <div style="text-align: right;">
-                            <b>วันที่สั่งใช้:</b> ${dateStr}
-                        </div>
+                    <div style="text-align: right; margin-bottom: 20px;"><b>วันที่สั่งใช้:</b> ${dateStr}</div>
+
+                    <div style="margin-bottom: 20px; border-bottom: 1px solid black; padding-bottom: 15px;">
+                        <h3 style="font-size: 12pt; font-weight: bold; margin-bottom: 10px;">1. รายละเอียดแพทย์ผู้จ่ายยา</h3>
+                        <b>ชื่อแพทย์ผู้สั่งการรักษา:</b> นพ.ยตนา มาพันธ์สุ <br>
+                        <b>เลขที่ใบอนุญาตประกอบวิชาชีพเวชกรรม:</b> ว. 67650
                     </div>
                     
-                    <div style="border: 2px solid black; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9;">
-                        <h3 style="font-size: 12pt; font-weight: bold; margin-bottom: 10px; text-decoration: underline;">สรุปสูตรยาในเครื่อง (Syringe Driver Formula)</h3>
-                        <p style="font-size: 11pt; font-weight: bold; line-height: 1.8;">${summaryString || 'ไม่มีการผสมยาในเครื่อง'}</p>
+                    <div style="margin-bottom: 20px; border-bottom: 1px solid black; padding-bottom: 15px;">
+                        <h3 style="font-size: 12pt; font-weight: bold; margin-bottom: 10px;">2. รายละเอียดผู้ป่วย</h3>
+                        <b>ชื่อ-สกุล:</b> ${p.name} &nbsp;&nbsp;&nbsp;&nbsp; <b>อายุ:</b> ${p.age} ปี &nbsp;&nbsp;&nbsp;&nbsp; <b>HN:</b> ${p.hn}
+                    </div>
+                    
+                    <div style="margin-bottom: 20px; border-bottom: 1px solid black; padding-bottom: 15px;">
+                        <h3 style="font-size: 12pt; font-weight: bold; margin-bottom: 10px;">3. รายการยาต่างๆ</h3>
+                        
+                        <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 15px; background-color: #f9f9f9;">
+                            <h4 style="font-size: 11pt; font-weight: bold; margin-bottom: 5px; text-decoration: underline;">สรุปสูตรยาในเครื่อง (Syringe Driver Formula)</h4>
+                            <p style="font-size: 11pt; font-weight: bold;">${summaryString || 'ไม่มีการผสมยาในเครื่อง'}</p>
+                        </div>
+
+                        ${tempSyringeMeds.length > 0 ? `
+                            <h4 style="font-size: 10pt; font-weight: bold; margin-bottom: 5px;">รายการยาที่เบิกเข้าเครื่อง</h4>
+                            <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 10pt;">
+                                <tr style="background-color: #f2f2f2;">
+                                    <th style="padding: 8px; border: 1px solid black; width: 5%;">ลำดับ</th>
+                                    <th style="padding: 8px; border: 1px solid black; width: 45%;">ชื่อรายการยา</th>
+                                    <th style="padding: 8px; border: 1px solid black; text-align: center;">ขนาดยา (Dose)</th>
+                                    <th style="padding: 8px; border: 1px solid black; text-align: center;">จำนวนเบิกจ่าย</th>
+                                </tr>
+                                ${syrMedsRows}
+                            </table>
+                        ` : ''}
+
+                        ${tempOtherMeds.length > 0 ? `
+                            <h4 style="font-size: 10pt; font-weight: bold; margin-bottom: 5px;">รายการยาอื่นๆ (Other / PRN Medications)</h4>
+                            <table style="width: 100%; border-collapse: collapse; font-size: 10pt;">
+                                <tr style="background-color: #f2f2f2;">
+                                    <th style="padding: 8px; border: 1px solid black; width: 5%;">ลำดับ</th>
+                                    <th style="padding: 8px; border: 1px solid black; width: 35%;">ชื่อรายการยา</th>
+                                    <th style="padding: 8px; border: 1px solid black; text-align: center; width: 15%;">ขนาดยา</th>
+                                    <th style="padding: 8px; border: 1px solid black; text-align: center; width: 15%;">จำนวน</th>
+                                    <th style="padding: 8px; border: 1px solid black;">วิธีบริหาร (Sig.)</th>
+                                </tr>
+                                ${otherMedsRows}
+                            </table>
+                        ` : ''}
                     </div>
 
-                    ${tempSyringeMeds.length > 0 ? `
-                        <h3 style="font-size: 11pt; font-weight: bold; margin-bottom: 5px;">รายการยาที่เบิกเข้าเครื่อง</h3>
-                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 10pt;">
-                            <tr style="background-color: #f2f2f2;">
-                                <th style="padding: 8px; border: 1px solid black; width: 5%;">ลำดับ</th>
-                                <th style="padding: 8px; border: 1px solid black; width: 45%;">ชื่อรายการยา</th>
-                                <th style="padding: 8px; border: 1px solid black; text-align: center;">ขนาดยา (Dose)</th>
-                                <th style="padding: 8px; border: 1px solid black; text-align: center;">จำนวนเบิกจ่าย</th>
-                            </tr>
-                            ${syrMedsRows}
-                        </table>
-                    ` : ''}
-
-                    ${tempOtherMeds.length > 0 ? `
-                        <h3 style="font-size: 11pt; font-weight: bold; margin-bottom: 5px; margin-top: 20px;">รายการยาอื่นๆ (Other / PRN Medications)</h3>
-                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 10pt;">
-                            <tr style="background-color: #f2f2f2;">
-                                <th style="padding: 8px; border: 1px solid black; width: 5%;">ลำดับ</th>
-                                <th style="padding: 8px; border: 1px solid black; width: 35%;">ชื่อรายการยา</th>
-                                <th style="padding: 8px; border: 1px solid black; text-align: center; width: 15%;">ขนาดยา</th>
-                                <th style="padding: 8px; border: 1px solid black; text-align: center; width: 15%;">จำนวน</th>
-                                <th style="padding: 8px; border: 1px solid black;">วิธีบริหาร (Sig.)</th>
-                            </tr>
-                            ${otherMedsRows}
-                        </table>
-                    ` : ''}
-
-                    <div style="display: flex; justify-content: space-between; margin-top: 50px;">
-                        <div style="text-align: center; width: 45%;">
-                            ลงชื่อ.............................................................. พยาบาลผู้เตรียมยา<br>
-                            (....................................................................)<br>
-                            วันที่ ........./........./......... เวลา ............ น.
-                        </div>
-                        <div style="text-align: center; width: 45%;">
-                            ลงชื่อ.............................................................. แพทย์ผู้สั่งการรักษา<br>
-                            ( นพ.ยตนา มาพันธ์สุ )<br>
-                            เลขที่ใบอนุญาตประกอบวิชาชีพเวชกรรม: ว. 67650
+                    <div style="margin-top: 30px;">
+                        <h3 style="font-size: 12pt; font-weight: bold; margin-bottom: 20px;">4. ส่วนลงชื่อลายเซ็นต์</h3>
+                        <div style="display: flex; justify-content: space-between;">
+                            <div style="text-align: center; width: 45%;">
+                                ลงชื่อ.............................................................. พยาบาลผู้เตรียมยา<br>
+                                (....................................................................)<br>
+                                วันที่ ........./........./......... เวลา ............ น.
+                            </div>
+                            <div style="text-align: center; width: 45%;">
+                                ลงชื่อ.............................................................. แพทย์ผู้สั่งการรักษา<br>
+                                ( นพ.ยตนา มาพันธ์สุ )<br>
+                                เลขที่ใบอนุญาตประกอบวิชาชีพเวชกรรม: ว. 67650
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1334,7 +1382,7 @@
             let medsRows = '';
             tempNarc2Meds.forEach((m, idx) => {
                 medsRows += `<div style="margin-top: 15px; padding-bottom: 10px; border-bottom: 1px dashed #ccc;">
-                    <b>รายการสั่งใช้ยาเสพติดกลุ่มที่ 2 (รายการที่ ${idx+1}):</b> <span style="font-weight: bold; text-decoration: underline;">${m.name}</span><br>
+                    <b>รายการยาที่ ${idx+1}:</b> <span style="font-weight: bold; text-decoration: underline;">${m.name}</span><br>
                     <b>ขนาดยาเดี่ยว:</b> ${m.dose} mg/mcg &nbsp;&nbsp;&nbsp;&nbsp; <b>ข้อบ่งชี้:</b> ${m.indication}<br>
                     <b>วิธีใช้:</b> ${m.sig}<br>
                     <b>จำนวนสุทธิที่ขอเบิกจ่าย:</b> <span style="font-weight: bold;">${m.qty}</span>
@@ -1345,21 +1393,37 @@
                 <div class="print-card" style="font-family: 'Sarabun', 'Kanit', sans-serif; color: black; line-height: 1.8;">
                     <div style="text-align: center; font-size: 16pt; font-weight: bold; margin-bottom: 20px;">ใบสั่ง/ใบขออนุมัติสั่งใช้ยาเสพติดให้โทษประเภทที่ 2 <br>โรงพยาบาลทับคล้อ</div>
                     <div style="text-align: right; margin-bottom: 20px;"><b>วันที่:</b> ${formattedDate}</div>
+                    
                     <div style="margin-bottom: 20px; border-bottom: 1px solid black; padding-bottom: 15px;">
-                        <h3 style="font-size: 12pt; font-weight: bold; margin-bottom: 10px;">1. ข้อมูลผู้ป่วย</h3>
+                        <h3 style="font-size: 12pt; font-weight: bold; margin-bottom: 10px;">1. รายละเอียดแพทย์ผู้จ่ายยา</h3>
+                        <b>ชื่อแพทย์ผู้สั่งจ่าย:</b> ${document.getElementById('narc2-doc-name').value} <br>
+                        <b>เลขที่ใบอนุญาตประกอบวิชาชีพเวชกรรม:</b> ว. ${document.getElementById('narc2-doc-license').value}
+                    </div>
+
+                    <div style="margin-bottom: 20px; border-bottom: 1px solid black; padding-bottom: 15px;">
+                        <h3 style="font-size: 12pt; font-weight: bold; margin-bottom: 10px;">2. รายละเอียดผู้ป่วย</h3>
                         <b>ชื่อ-นามสกุล:</b> ${document.getElementById('narc2-pat-name').value} &nbsp;&nbsp;&nbsp;&nbsp; <b>HN:</b> ${document.getElementById('narc2-pat-hn').value}<br>
                         <b>ที่อยู่:</b> ${document.getElementById('narc2-pat-address').value}
                     </div>
+
                     <div style="margin-bottom: 20px; border-bottom: 1px solid black; padding-bottom: 15px;">
-                        <h3 style="font-size: 12pt; font-weight: bold; margin-bottom: 10px;">2. รายการยาเสพติด ป.2 สั่งจ่าย</h3>${medsRows}
+                        <h3 style="font-size: 12pt; font-weight: bold; margin-bottom: 10px;">3. รายการยาต่างๆ (ยาเสพติด ป.2)</h3>
+                        ${medsRows}
                     </div>
-                    <div style="display: flex; justify-content: space-between; margin-top: 40px;">
-                        <div style="text-align: center; width: 45%;">
-                            ลงชื่อ.............................................................. แพทย์ผู้สั่งจ่าย<br>
-                            ( ${document.getElementById('narc2-doc-name').value} )<br>เลขที่ใบอนุญาต: ว. ${document.getElementById('narc2-doc-license').value}
-                        </div>
-                        <div style="text-align: center; width: 45%;">
-                            ลงชื่อ.............................................................. ผู้รับยา<br>(....................................................................)<br>ความสัมพันธ์เกี่ยวข้อง: ....................................................
+
+                    <div style="margin-top: 30px;">
+                        <h3 style="font-size: 12pt; font-weight: bold; margin-bottom: 20px;">4. ส่วนลงชื่อลายเซ็นต์</h3>
+                        <div style="display: flex; justify-content: space-between;">
+                            <div style="text-align: center; width: 45%;">
+                                ลงชื่อ.............................................................. แพทย์ผู้สั่งจ่าย<br>
+                                ( ${document.getElementById('narc2-doc-name').value} )<br>
+                                วันที่ ........./........./.........
+                            </div>
+                            <div style="text-align: center; width: 45%;">
+                                ลงชื่อ.............................................................. ผู้รับยา<br>
+                                (....................................................................)<br>
+                                ความสัมพันธ์เกี่ยวข้อง: ....................................................
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1443,6 +1507,70 @@
             XLSX.utils.book_append_sheet(wb, ws, "PalliativeCareDatabase");
             XLSX.writeFile(wb, "Starlight_Palliative_Database_Tapkhlo.xlsx");
             showToast('ดาวน์โหลดฐานข้อมูล Excel สำเร็จ');
+        }
+
+        function generateSmartOPDNote() {
+            const hn = document.getElementById('smart-opd-hn').value.trim();
+            if(!hn) {
+                showToast("กรุณากรอก HN ของผู้ป่วย");
+                return;
+            }
+            
+            const p = patients.find(pat => pat.hn === hn);
+            if(!p) {
+                showToast("ไม่พบข้อมูลผู้ป่วยที่มี HN นี้ในระบบ");
+                return;
+            }
+
+            // Line 1: กลุ่มโรคประคับประคองหลัก และ การวินิจฉัย
+            const line1 = `1. กลุ่มโรคประคับประคองหลัก: ${p.disease}\n   การวินิจฉัย (Diagnosis): ${p.diagnosis || 'ไม่ได้ระบุ'}`;
+            
+            // Line 2: โรคประจำตัว
+            const line2 = `2. โรคประจำตัว (Underlying Diseases): ${p.udx && p.udx.length > 0 ? p.udx.join(', ') : 'ปฏิเสธโรคประจำตัวอื่นๆ'}`;
+            
+            // Line 3: เจตจำนงการรักษาล่วงหน้าล่าสุด
+            const line3 = `3. เจตจำนงการรักษาล่วงหน้าล่าสุด (ACP): ${p.acp || 'ยังไม่ได้ระบุ'}`;
+
+            // Line 4: รายละเอียดและเบอร์ติดต่อของญาติ
+            let contactsText = 'ไม่มีข้อมูลการติดต่อ';
+            if(p.contacts && p.contacts.length > 0) {
+                contactsText = p.contacts.map(c => `${c.name} - โทร. ${c.tel || '-'}`).join(', ');
+            }
+            const line4 = `4. รายละเอียดและเบอร์ติดต่อของญาติ: ${contactsText}`;
+
+            // Line 5: บันทึกการใช้ยาล่าสุด
+            let morphineText = 'ไม่มีประวัติการใช้ยาแก้ปวดกลุ่มฝิ่น (Opioids)';
+            if(p.morphineRecords && p.morphineRecords.length > 0) {
+                const lastRecord = p.morphineRecords[p.morphineRecords.length - 1];
+                // คำนวณเบื้องต้นจากการดึงข้อมูลล่าสุด
+                morphineText = `Total daily dose: ${lastRecord.dose * 6} mg/day (ประมาณการ)\n   Breakthrough dose: ${lastRecord.med} ${lastRecord.dose} mg prn`;
+            }
+            const line5 = `5. บันทึกการใช้ยาล่าสุด:\n   ${morphineText}`;
+
+            const fullNote = `${line1}\n\n${line2}\n\n${line3}\n\n${line4}\n\n${line5}`;
+            
+            document.getElementById('smart-opd-output').value = fullNote;
+            showToast("ร่างประมวลผลข้อเขียนอัจฉริยะสำเร็จ!");
+        }
+
+        function copySmartOPDNote() {
+            const text = document.getElementById('smart-opd-output').value;
+            if(!text) {
+                showToast("ไม่มีข้อความให้คัดลอก กรุณาประมวลผลก่อน");
+                return;
+            }
+            
+            const tempTextArea = document.createElement("textarea");
+            tempTextArea.value = text;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            try {
+                document.execCommand('copy');
+                showToast("คัดลอกข้อความ Smart OPD ลงคลิปบอร์ดสำเร็จ");
+            } catch (err) {
+                showToast("ไม่สามารถคัดลอกได้ อุปกรณ์อาจไม่รองรับ");
+            }
+            document.body.removeChild(tempTextArea);
         }
 
         function initSpaceBackground() {
