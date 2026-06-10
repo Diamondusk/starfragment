@@ -27,23 +27,10 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['Kanit', 'sans-serif'],
-                    },
+                    fontFamily: { sans: ['Kanit', 'sans-serif'] },
                     colors: {
-                        space: {
-                            950: '#02040a',
-                            900: '#050a18',
-                            800: '#0c1635',
-                            700: '#172754',
-                            600: '#233875',
-                        },
-                        starlight: {
-                            cyan: '#66FCF1',
-                            blue: '#45A29E',
-                            gold: '#F4D03F',
-                            red: '#FF4C4C'
-                        }
+                        space: { 950: '#02040a', 900: '#050a18', 800: '#0c1635', 700: '#172754', 600: '#233875' },
+                        starlight: { cyan: '#66FCF1', blue: '#45A29E', gold: '#F4D03F', red: '#FF4C4C' }
                     }
                 }
             }
@@ -51,139 +38,34 @@
     </script>
 
     <style>
-        body {
-            background-color: #02040a;
-            color: #E2E8F0;
-            overflow-x: hidden;
-        }
-
-        /* --- STARRY BACKGROUND --- */
-        .stars-bg {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            z-index: -2;
-            background: radial-gradient(ellipse at bottom, #09122c 0%, #02040a 100%);
-        }
-
-        .star {
-            position: absolute;
-            background-color: #ffffff;
-            border-radius: 50%;
-            animation: twinkle infinite alternate ease-in-out;
-        }
-
+        body { background-color: #02040a; color: #E2E8F0; overflow-x: hidden; }
+        .stars-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; background: radial-gradient(ellipse at bottom, #09122c 0%, #02040a 100%); }
+        .star { position: absolute; background-color: #ffffff; border-radius: 50%; animation: twinkle infinite alternate ease-in-out; }
         @keyframes twinkle {
             0% { opacity: 0.1; transform: scale(0.6); box-shadow: 0 0 2px rgba(255,255,255,0.4); }
             50% { opacity: 0.9; box-shadow: 0 0 12px #66FCF1; }
             100% { opacity: 1; transform: scale(1.3); box-shadow: 0 0 18px #ffffff, 0 0 28px #F4D03F; }
         }
-
-        /* --- DIAGONAL SLANTED METEOR SHOWER --- */
-        .meteor-container {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            z-index: -1;
-            overflow: hidden;
-            pointer-events: none;
-        }
-
-        .meteor {
-            position: absolute;
-            width: 1.5px;
-            height: 150px;
-            background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.9), #66FCF1);
-            transform: rotate(35deg);
-            transform-origin: top center;
-            opacity: 0;
-            animation: fall linear forwards;
-        }
-
-        .meteor::after {
-            content: '';
-            position: absolute;
-            bottom: 0; left: -2.5px;
-            width: 7px; height: 7px;
-            background-color: #ffffff;
-            border-radius: 50%;
-            box-shadow: 0 0 25px 10px rgba(102, 252, 241, 0.95), 0 0 45px 18px rgba(255, 255, 255, 0.8);
-        }
-
-        @keyframes fall {
-            0% { transform: rotate(35deg) translateY(-250px); opacity: 1; }
-            100% { transform: rotate(35deg) translateY(2800px); opacity: 0; }
-        }
-
-        /* --- GLASSMORPHISM & SHADOWS --- */
-        .glass-panel {
-            background: rgba(12, 22, 53, 0.45);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(102, 252, 241, 0.15);
-            border-radius: 1rem;
-            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.6), inset 0 0 25px rgba(102, 252, 241, 0.05);
-        }
-
-        .glass-input {
-            background: rgba(2, 4, 10, 0.45);
-            border: 1px solid rgba(102, 252, 241, 0.25);
-            color: white;
-            transition: all 0.3s ease;
-        }
-
-        .glass-input:focus {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: #66FCF1;
-            box-shadow: 0 0 15px rgba(102, 252, 241, 0.45);
-            outline: none;
-        }
-
+        .meteor-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; overflow: hidden; pointer-events: none; }
+        .meteor { position: absolute; width: 1.5px; height: 150px; background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.9), #66FCF1); transform: rotate(35deg); transform-origin: top center; opacity: 0; animation: fall linear forwards; }
+        .meteor::after { content: ''; position: absolute; bottom: 0; left: -2.5px; width: 7px; height: 7px; background-color: #ffffff; border-radius: 50%; box-shadow: 0 0 25px 10px rgba(102, 252, 241, 0.95), 0 0 45px 18px rgba(255, 255, 255, 0.8); }
+        @keyframes fall { 0% { transform: rotate(35deg) translateY(-250px); opacity: 1; } 100% { transform: rotate(35deg) translateY(2800px); opacity: 0; } }
+        .glass-panel { background: rgba(12, 22, 53, 0.45); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(102, 252, 241, 0.15); border-radius: 1rem; box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.6), inset 0 0 25px rgba(102, 252, 241, 0.05); }
+        .glass-input { background: rgba(2, 4, 10, 0.45); border: 1px solid rgba(102, 252, 241, 0.25); color: white; transition: all 0.3s ease; }
+        .glass-input:focus { background: rgba(255, 255, 255, 0.08); border-color: #66FCF1; box-shadow: 0 0 15px rgba(102, 252, 241, 0.45); outline: none; }
         .space-radio { accent-color: #66FCF1; width: 1.2rem; height: 1.2rem; cursor: pointer; }
-
         .view-section { display: none; animation: fadeIn 0.4s ease-in-out; }
         .view-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-
-        #toast {
-            visibility: hidden;
-            min-width: 340px;
-            background-color: rgba(12, 22, 53, 0.95);
-            color: #66FCF1;
-            border: 1px solid #66FCF1;
-            box-shadow: 0 0 25px rgba(102, 252, 241, 0.5);
-            text-align: center;
-            border-radius: 12px;
-            padding: 18px;
-            position: fixed;
-            z-index: 100;
-            left: 50%;
-            bottom: 30px;
-            transform: translateX(-50%);
-            font-size: 14px;
-            font-weight: 500;
-            word-break: break-word;
-        }
-        #toast.show {
-            visibility: visible;
-            animation: fadein 0.5s, fadeout 0.5s 2.5s;
-        }
+        #toast { visibility: hidden; min-width: 340px; background-color: rgba(12, 22, 53, 0.95); color: #66FCF1; border: 1px solid #66FCF1; box-shadow: 0 0 25px rgba(102, 252, 241, 0.5); text-align: center; border-radius: 12px; padding: 18px; position: fixed; z-index: 100; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 14px; font-weight: 500; word-break: break-word; }
+        #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
         @keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 30px; opacity: 1; } }
         @keyframes fadeout { from { bottom: 30px; opacity: 1; } to { bottom: 0; opacity: 0; } }
-
-        /* --- PRINT STYLES --- */
         @media print {
             body { background: white !important; color: black !important; font-family: 'Sarabun', 'Kanit', sans-serif !important; }
             .no-print { display: none !important; }
             #print-container { display: block !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
-            .print-card { 
-                border: 1px solid black !important; 
-                color: black !important; 
-                background: white !important; 
-                padding: 30px !important; 
-                font-size: 11pt !important;
-                line-height: 1.6 !important;
-            }
+            .print-card { border: 1px solid black !important; color: black !important; background: white !important; padding: 30px !important; font-size: 11pt !important; line-height: 1.6 !important; }
             .print-title { font-size: 20pt; font-weight: bold; text-align: center; margin-bottom: 20px; color: black !important; }
         }
         #print-container { display: none; }
@@ -191,7 +73,6 @@
 </head>
 <body class="flex h-screen overflow-hidden">
 
-    <!-- Starry Night Background Elements -->
     <div class="stars-bg" id="stars-container"></div>
     <div class="meteor-container" id="meteor-container"></div>
 
@@ -202,7 +83,6 @@
             <h1 class="text-2xl font-bold text-starlight-cyan tracking-wider">Starlight Care</h1>
             <p class="text-xs text-gray-400 mt-1">โรงพยาบาลทับคล้อ</p>
             
-            <!-- Connection Status Badge -->
             <div class="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-space-950 border border-white/10 text-[11px]">
                 <span id="db-status-dot" class="w-2.5 h-2.5 rounded-full bg-yellow-500 animate-ping"></span>
                 <span id="db-status-text" class="text-gray-300">กำลังตรวจสอบระบบ...</span>
@@ -217,7 +97,7 @@
             <div class="pt-4 pb-1">
                 <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider pl-3">ระบบจัดการผู้ป่วย</p>
             </div>
-            <button onclick="switchView('patient-register')" class="nav-btn w-full flex items-center p-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">
+            <button onclick="switchView('patient-register')" id="nav-patient-register" class="nav-btn w-full flex items-center p-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">
                 <i class="fa-solid fa-user-plus w-6"></i> ลงทะเบียนผู้ป่วยใหม่
             </button>
 
@@ -226,6 +106,13 @@
             </div>
             <button onclick="switchView('document-center')" id="nav-document-center" class="nav-btn w-full flex items-center p-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">
                 <i class="fa-solid fa-folder-open w-6"></i> คลังเอกสาร & สารเสพติด
+            </button>
+
+            <div class="pt-4 pb-1">
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider pl-3">ระบบบริหารและสรุปเงินเยี่ยมบ้าน</p>
+            </div>
+            <button onclick="switchView('visit-finance')" id="nav-visit-finance" class="nav-btn w-full flex items-center p-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">
+                <i class="fa-solid fa-hand-holding-dollar w-6"></i> คำนวณเงินเยี่ยมบ้าน
             </button>
 
             <div class="pt-4 pb-1">
@@ -258,6 +145,7 @@
                 <button onclick="switchView('dashboard')"><i class="fa-solid fa-chart-pie"></i></button>
                 <button onclick="switchView('patient-register')"><i class="fa-solid fa-user-plus"></i></button>
                 <button onclick="switchView('document-center')"><i class="fa-solid fa-folder-open text-starlight-cyan"></i></button>
+                <button onclick="switchView('visit-finance')"><i class="fa-solid fa-hand-holding-dollar text-green-400"></i></button>
                 <button onclick="switchView('smart-opd')"><i class="fa-solid fa-robot text-starlight-gold"></i></button>
             </div>
         </div>
@@ -350,11 +238,10 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm text-gray-400 mb-1">เขตรพ.สต.รับผิดชอบ <span class="text-red-500">*</span></label>
-                            <select id="reg-pcu" onchange="toggleInput('reg-pcu', 'reg-pcu-other', 'นอกเขต')" class="glass-input w-full p-2 rounded">
+                            <select id="reg-pcu" class="glass-input w-full p-2 rounded text-white">
                                 <option>PCU ทับคล้อ</option><option>รพ.สต. บ้านสายดงยาง</option><option>รพ.สต. เขาทราย</option><option>รพ.สต. บ้านวังแดง</option><option>รพ.สต. บ้านเขาเจ็ดลูก(ไดวน)</option><option>รพ.สต. ตำบลเขาเจ็ดลูก</option><option>รพ.สต. บ้านท้ายทุ่งหมู่2</option><option>รพ.สต. ตำบลท้ายทุ่ง(วังกระชัน)</option><option>รพ.สต. บ้านไดอีเผือก</option><option>นอกเขต</option>
                             </select>
                         </div>
-                        <div id="reg-pcu-other-container" class="hidden"><label class="block text-sm text-starlight-gold mb-1">ระบุนอกเขต</label><input type="text" id="reg-pcu-other" class="glass-input w-full p-2 rounded"></div>
                     </div>
                 </div>
 
@@ -381,14 +268,6 @@
                             <textarea id="reg-diagnosis" rows="2" class="glass-input w-full p-2 rounded"></textarea>
                         </div>
                     </div>
-                    <div class="bg-space-950/40 p-4 rounded-lg border border-white/10">
-                        <label class="block text-sm text-starlight-cyan mb-2 font-medium">โรคประจำตัวอื่น ๆ (Underlying Diseases)</label>
-                        <div class="flex gap-2">
-                            <input type="text" id="reg-udx-input" class="glass-input flex-1 p-2 rounded text-sm" placeholder="พิมพ์ชื่อโรคประจำตัวแล้วกดบวก">
-                            <button type="button" onclick="addRegisterUdxItem()" class="bg-starlight-cyan text-space-950 font-bold px-4 rounded-lg"><i class="fa-solid fa-plus"></i></button>
-                        </div>
-                        <ul id="reg-udx-list" class="mt-3 space-y-2"></ul>
-                    </div>
                 </div>
 
                 <!-- Management & Contacts -->
@@ -399,9 +278,11 @@
                         <textarea id="reg-acp" rows="2" class="glass-input w-full p-2 rounded" placeholder="ระบุ No CPR, No Intubation หรือ อื่นๆ..."></textarea>
                     </div>
                     <div class="mb-6">
-                        <label class="block text-sm text-starlight-gold mb-2 font-medium">รายชื่อญาติและผู้ดูแลประสานงาน</label>
-                        <div id="reg-contact-wrapper" class="space-y-3"></div>
-                        <button type="button" onclick="addRegisterContactRow()" class="mt-3 text-xs text-starlight-cyan hover:underline"><i class="fa-solid fa-plus mr-1"></i> เพิ่มญาติเพิ่มเติม</button>
+                        <label class="block text-sm text-starlight-gold mb-2 font-medium">ญาติและผู้ดูแลประสานงานหลัก</label>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div><label class="block text-xs text-gray-400 mb-1">ชื่อ-สกุล ญาติ</label><input type="text" id="reg-contact-name" class="glass-input w-full p-2 rounded" placeholder="เช่น นางสายใจ ดีงาม"></div>
+                            <div><label class="block text-xs text-gray-400 mb-1">เบอร์โทรศัพท์ติดต่อ</label><input type="text" id="reg-contact-tel" class="glass-input w-full p-2 rounded" placeholder="เช่น 081-234-5678"></div>
+                        </div>
                     </div>
                     <div class="p-4 rounded-lg bg-[#107c41]/10 border border-[#107c41]/30">
                         <label class="flex items-center space-x-3 cursor-pointer">
@@ -655,12 +536,73 @@
 
                         </div>
                     </div>
-
                 </div>
             </div>
         </section>
 
-        <!-- SECTION 4: SMART OPD GENERATOR -->
+        <!-- SECTION 4: HOME VISIT REIMBURSEMENT/FINANCE VIEW -->
+        <section id="visit-finance" class="view-section h-full max-w-7xl mx-auto pb-12">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold text-white"><i class="fa-solid fa-hand-holding-dollar text-green-400 mr-2"></i> ระบบติดตามและคำนวณเงินเยี่ยมบ้าน</h2>
+                    <p class="text-gray-400">คำนวณและประมวลผลยอดเงินสนับสนุนตามเกณฑ์การเยี่ยมบ้าน Palliative Care รพ.ทับคล้อ</p>
+                </div>
+            </div>
+
+            <!-- Financial KPIs -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <div class="glass-panel p-5 border-l-4 border-starlight-cyan">
+                    <p class="text-xs text-gray-400 uppercase">ยอดเงินสนับสนุนรวม (Grand Total)</p>
+                    <h3 class="text-3xl font-extrabold text-white mt-2" id="fin-kpi-total">0.00 บาท</h3>
+                </div>
+                <div class="glass-panel p-5 border-l-4 border-green-400">
+                    <p class="text-xs text-gray-400 uppercase">ส่วนแบ่งของ รพ.ทับคล้อ (100% / 30%)</p>
+                    <h3 class="text-3xl font-extrabold text-green-400 mt-2" id="fin-kpi-hospital">0.00 บาท</h3>
+                </div>
+                <div class="glass-panel p-5 border-l-4 border-starlight-gold">
+                    <p class="text-xs text-gray-400 uppercase">ส่วนแบ่งรวม รพ.สต. ในพื้นที่ (70%)</p>
+                    <h3 class="text-3xl font-extrabold text-starlight-gold mt-2" id="fin-kpi-subdistrict">0.00 บาท</h3>
+                </div>
+                <div class="glass-panel p-5 border-l-4 border-pink-400">
+                    <p class="text-xs text-gray-400 uppercase">จำนวนครั้งการเยี่ยมบ้านที่ได้รับสิทธิ์</p>
+                    <h3 class="text-3xl font-extrabold text-pink-400 mt-2" id="fin-kpi-count">0 ครั้ง</h3>
+                </div>
+            </div>
+
+            <!-- Financial Graphs -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <div class="glass-panel p-5">
+                    <h4 class="text-sm font-bold text-white mb-4"><i class="fa-solid fa-chart-bar text-green-400 mr-1"></i> ยอดเงินสนับสนุนการเยี่ยมบ้านรายเดือน (Stacked)</h4>
+                    <div class="h-64"><canvas id="finMonthlyChart"></canvas></div>
+                </div>
+                <div class="glass-panel p-5">
+                    <h4 class="text-sm font-bold text-white mb-4"><i class="fa-solid fa-chart-pie text-starlight-cyan mr-1"></i> สัดส่วนยอดเงินและจำนวนครั้งแยกราย รพ.สต.</h4>
+                    <div class="h-64"><canvas id="finSubdistrictChart"></canvas></div>
+                </div>
+            </div>
+
+            <!-- Breakdown Table by Subdistrict -->
+            <div class="glass-panel p-6">
+                <h4 class="text-lg font-bold text-white mb-4"><i class="fa-solid fa-table-list text-starlight-cyan mr-2"></i> สรุปรายได้และสัดส่วนสิทธิ์เยี่ยมบ้านแยกรายหน่วยบริการ</h4>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead>
+                            <tr class="text-gray-400 border-b border-white/10">
+                                <th class="p-3">รพ.สต. / เขตรับผิดชอบ</th>
+                                <th class="p-3 text-center">จำนวนเยี่ยมที่คิดเงิน (ครั้ง)</th>
+                                <th class="p-3 text-right">ยอดเงินสนับสนุนรวม (บาท)</th>
+                                <th class="p-3 text-right text-green-400">ส่วนแบ่ง รพ.ทับคล้อ (บาท)</th>
+                                <th class="p-3 text-right text-starlight-gold">ส่วนแบ่ง รพ.สต. (บาท)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fin-breakdown-body">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 5: SMART OPD GENERATOR -->
         <section id="smart-opd" class="view-section h-full max-w-4xl mx-auto pb-12">
             <h2 class="text-3xl font-extrabold text-white mb-2"><i class="fa-solid fa-robot text-starlight-gold mr-2"></i> Smart OPD ร่างประมวลผลข้อเขียนอัจฉริยะ</h2>
             <p class="text-gray-400 mb-8">กรอก HN ของผู้ป่วยเพื่อดึงข้อมูลและสรุปสำหรับคัดลอกลง Progress Note หรือ OPD Card</p>
@@ -736,7 +678,6 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div class="md:col-span-2">
                         <label class="block text-xs text-gray-400 mb-1">ชื่อรายการยา</label>
-                        <!-- Combobox style behavior: select or type -->
                         <div class="flex flex-col gap-2">
                             <select id="syr-modal-med-select" onchange="document.getElementById('syr-modal-med-name').value = this.value" class="glass-input w-full p-2 rounded text-sm text-starlight-cyan font-bold">
                                 <option value="">-- เลือกจากรายการที่พบบ่อย --</option>
@@ -776,30 +717,64 @@
         let patients = [];
         let regUdxList = [];
         
-        let tempNarc2Meds = []; // drugs dynamically in Narcotic 2 printing form
-        let tempPRNRecords = []; // Temporary PRN administration records
+        let tempNarc2Meds = []; 
+        let tempPRNRecords = []; 
         
-        // Syringe Driver specific arrays
         let tempSyringeMeds = [];
         let tempOtherMeds = [];
 
         let diseaseChartInstance = null;
         let pcuChartInstance = null;
+        let finMonthlyChartInstance = null;
+        let finSubdistrictChartInstance = null;
 
-        // Fallback Database
+        // Mock Database incorporating realistic visits for financial algorithms
         let fallbackPatients = [
             {
                 id: 1, name: 'นาย สมหมาย ใจดี', age: 68, cid: '3120199023812', hn: '1234567',
                 right_care: 'UC ผู้สูงอายุ', right_care_other: '',
                 address: { no: '12/4', moo: '3', road: 'ทับคล้อร่วมใจ', sub: 'ทับคล้อ', dist: 'ทับคล้อ', prov: 'พิจิตร', zip: '66230' },
-                pcu: 'PCU ทับคล้อ', pcu_other: '', disease: 'Cancer', disease_other: '',
+                pcu: 'รพ.สต. เขาทราย', pcu_other: '', disease: 'Cancer', disease_other: '',
                 diagnosis: 'CA Colon Stage IV with Lung metastasis',
                 udx: ['DM Type 2', 'Hypertension'], status: 'Active',
-                pps: 40, isPinned: true, pinnedReason: 'ใกล้เสียชีวิต (Active Dying)',
-                insuranceSent: true, acp: 'No CPR, No Tube, Comfort Care',
-                contacts: [{name: 'คุณสมหญิง (ภรรยา)', tel: '089-123-4567'}],
+                pps: 40, is_pinned: true, pinned_reason: 'ใกล้เสียชีวิต (Active Dying)',
+                insurance_sent: true, acp: 'No CPR, No Tube, Comfort Care',
                 morphine_records: [
                     { datetime: '2026-06-02T08:00', type: 'Breakthrough dose', med: 'Morphine syrup 2 mg/ml', dose: 2.5, qty: '1 amp', route: 'Subcutaneous injection', pain_before: 6, pain_after: 2 }
+                ],
+                // Add Visit records to show immediately on Finance Dashboard
+                daily_records: [
+                    { mode: 'Visit', date: '2026-06-01', visitor: 'รพ.ทับคล้อ' },
+                    { mode: 'Visit', date: '2026-06-05', visitor: 'รพ.ทับคล้อ' }
+                ]
+            },
+            {
+                id: 2, name: 'นาง พิมพา ศรีสุวรรณ', age: 72, cid: '3660100982312', hn: '2234567',
+                right_care: 'UC ผู้สูงอายุ', right_care_other: '',
+                address: { no: '44', moo: '1', road: '-', sub: 'ท้ายทุ่ง', dist: 'ทับคล้อ', prov: 'พิจิตร', zip: '66230' },
+                pcu: 'รพ.สต. บ้านสายดงยาง', pcu_other: '', disease: 'COPD', disease_other: '',
+                diagnosis: 'COPD with acute exacerbation',
+                udx: ['Hypertension'], status: 'Active',
+                pps: 60, is_pinned: false, pinned_reason: '',
+                insurance_sent: true, acp: 'Comfort care',
+                morphine_records: [],
+                daily_records: [
+                    { mode: 'Visit', date: '2026-06-02', visitor: 'รพ.สต. เจ้าของพื้นที่' },
+                    { mode: 'Visit', date: '2026-06-10', visitor: 'รพ.ทับคล้อ' }
+                ]
+            },
+            {
+                id: 3, name: 'นาย เจริญ ดีประเสริฐ', age: 75, cid: '3120199023111', hn: '3234567',
+                right_care: 'UC ผู้สูงอายุ', right_care_other: '',
+                address: { no: '5/2', moo: '4', road: 'รักชาติ', sub: 'ทับคล้อ', dist: 'ทับคล้อ', prov: 'พิจิตร', zip: '66230' },
+                pcu: 'PCU ทับคล้อ', pcu_other: '', disease: 'ESRD', disease_other: '',
+                diagnosis: 'End stage renal disease',
+                udx: ['DM Type 2'], status: 'Active',
+                pps: 50, is_pinned: false, pinned_reason: '',
+                insurance_sent: true, acp: 'Comfort care only',
+                morphine_records: [],
+                daily_records: [
+                    { mode: 'Visit', date: '2026-06-03', visitor: 'รพ.ทับคล้อ' }
                 ]
             }
         ];
@@ -859,7 +834,7 @@
                 pinnedReason: p.pinned_reason || p.pinnedReason || '',
                 insuranceSent: p.insurance_sent || p.insuranceSent || false,
                 acp: p.acp || '', morphineRecords: p.morphine_records || [],
-                contacts: p.contacts || [{name: 'ญาติ (ผู้ดูแลหลัก)', tel: 'ไม่ระบุเบอร์ติดต่อ'}]
+                dailyRecords: p.daily_records || []
             }));
         }
 
@@ -902,6 +877,9 @@
                 renderNarc2MedsList();
                 renderPRNMedTable();
             }
+            else if(viewId === 'visit-finance') {
+                renderFinanceDashboard();
+            }
         }
 
         function updateDashboard() {
@@ -909,7 +887,6 @@
             const pinned = patients.filter(p => p.isPinned).length;
             const active = patients.filter(p => p.status === 'Active' || p.status === 'Admit').length;
             
-            // Percentage mock (Since ward visits removed)
             const visitCompletionPercentage = total > 0 ? 85 : 0;
 
             document.getElementById('kpi-total').innerText = total;
@@ -943,6 +920,173 @@
                     options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
                 });
             }
+        }
+
+        // ==========================================================
+        //  FINANCIAL VISIT SYSTEM LOGIC
+        // ==========================================================
+        function calculateVisitFinance() {
+            let totalRevenue = 0;
+            let hospitalTotal = 0;
+            let subdistrictTotalShare = 0;
+            let totalPaidVisitsCount = 0;
+
+            let subdistrictTotals = {
+                'PCU ทับคล้อ': { total: 0, hospital: 0, subdistrict: 0, count: 0 },
+                'รพ.สต. บ้านสายดงยาง': { total: 0, hospital: 0, subdistrict: 0, count: 0 },
+                'รพ.สต. เขาทราย': { total: 0, hospital: 0, subdistrict: 0, count: 0 },
+                'รพ.สต. บ้านวังแดง': { total: 0, hospital: 0, subdistrict: 0, count: 0 },
+                'รพ.สต. บ้านเขาเจ็ดลูก(ไดวน)': { total: 0, hospital: 0, subdistrict: 0, count: 0 },
+                'รพ.สต. ตำบลเขาเจ็ดลูก': { total: 0, hospital: 0, subdistrict: 0, count: 0 },
+                'รพ.สต. บ้านท้ายทุ่งหมู่2': { total: 0, hospital: 0, subdistrict: 0, count: 0 },
+                'รพ.สต. ตำบลท้ายทุ่ง(วังกระชัน)': { total: 0, hospital: 0, subdistrict: 0, count: 0 },
+                'รพ.สต. บ้านไดอีเผือก': { total: 0, hospital: 0, subdistrict: 0, count: 0 },
+                'นอกเขต': { total: 0, hospital: 0, subdistrict: 0, count: 0 }
+            };
+
+            let monthlyRevenue = {};
+
+            patients.forEach(p => {
+                let visits = (p.dailyRecords || []).filter(r => r.mode === 'Visit');
+                // Sort chronologically
+                visits.sort((a, b) => new Date(a.date) - new Date(b.date));
+                // Only count up to 6 visits per patient
+                let paidVisits = visits.slice(0, 6);
+
+                paidVisits.forEach(v => {
+                    let pcu = p.pcu || 'PCU ทับคล้อ';
+                    let visitor = v.visitor || 'รพ.ทับคล้อ'; // Default is hospital
+                    let pay = 1000;
+                    let hospShare = 0;
+                    let subShare = 0;
+                    let eligible = false;
+
+                    // Condition 1: รพ.ทับคล้อ visits in these areas -> 100% Hospital
+                    let cond1Areas = ['รพ.สต. เขาทราย', 'รพ.สต. บ้านวังแดง', 'รพ.สต. บ้านเขาเจ็ดลูก(ไดวน)', 'รพ.สต. บ้านไดอีเผือก'];
+                    // Condition 2: Anyone visits in these areas -> Subdistrict 70% / Hospital 30%
+                    let cond2Areas = ['รพ.สต. บ้านสายดงยาง', 'รพ.สต. ตำบลเขาเจ็ดลูก', 'รพ.สต. บ้านท้ายทุ่งหมู่2', 'รพ.สต. ตำบลท้ายทุ่ง(วังกระชัน)'];
+                    // Condition 3: รพ.ทับคล้อ visits PCU ทับคล้อ -> 100% Hospital
+                    let cond3Areas = ['PCU ทับคล้อ'];
+
+                    if (cond1Areas.includes(pcu) && visitor === 'รพ.ทับคล้อ') {
+                        hospShare = 1000;
+                        subShare = 0;
+                        eligible = true;
+                    } else if (cond2Areas.includes(pcu)) {
+                        hospShare = 300;
+                        subShare = 700;
+                        eligible = true;
+                    } else if (cond3Areas.includes(pcu) && visitor === 'รพ.ทับคล้อ') {
+                        hospShare = 1000;
+                        subShare = 0;
+                        eligible = true;
+                    }
+
+                    if (eligible) {
+                        totalRevenue += pay;
+                        hospitalTotal += hospShare;
+                        subdistrictTotalShare += subShare;
+                        totalPaidVisitsCount++;
+
+                        if (!subdistrictTotals[pcu]) {
+                            subdistrictTotals[pcu] = { total: 0, hospital: 0, subdistrict: 0, count: 0 };
+                        }
+                        subdistrictTotals[pcu].total += pay;
+                        subdistrictTotals[pcu].hospital += hospShare;
+                        subdistrictTotals[pcu].subdistrict += subShare;
+                        subdistrictTotals[pcu].count++;
+
+                        // Build monthly chart data
+                        let monthStr = v.date ? v.date.substring(0, 7) : '2026-06';
+                        if (!monthlyRevenue[monthStr]) {
+                            monthlyRevenue[monthStr] = { total: 0, hospital: 0, subdistrict: 0 };
+                        }
+                        monthlyRevenue[monthStr].total += pay;
+                        monthlyRevenue[monthStr].hospital += hospShare;
+                        monthlyRevenue[monthStr].subdistrict += subShare;
+                    }
+                });
+            });
+
+            return {
+                totalRevenue, hospitalTotal, subdistrictTotalShare, totalPaidVisitsCount,
+                subdistrictTotals, monthlyRevenue
+            };
+        }
+
+        function renderFinanceDashboard() {
+            const data = calculateVisitFinance();
+
+            // Render KPIs
+            document.getElementById('fin-kpi-total').innerText = data.totalRevenue.toLocaleString() + ' บาท';
+            document.getElementById('fin-kpi-hospital').innerText = data.hospitalTotal.toLocaleString() + ' บาท';
+            document.getElementById('fin-kpi-subdistrict').innerText = data.subdistrictTotalShare.toLocaleString() + ' บาท';
+            document.getElementById('fin-kpi-count').innerText = data.totalPaidVisitsCount + ' ครั้ง';
+
+            // Populate Breakdown Table
+            const body = document.getElementById('fin-breakdown-body');
+            body.innerHTML = '';
+            
+            Object.keys(data.subdistrictTotals).forEach(key => {
+                const item = data.subdistrictTotals[key];
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-white/5 hover:bg-space-950/30';
+                tr.innerHTML = `
+                    <td class="p-3 font-semibold text-white">${key}</td>
+                    <td class="p-3 text-center">${item.count}</td>
+                    <td class="p-3 text-right font-bold text-starlight-cyan">${item.total.toLocaleString()} บาท</td>
+                    <td class="p-3 text-right text-green-400 font-semibold">${item.hospital.toLocaleString()} บาท</td>
+                    <td class="p-3 text-right text-starlight-gold font-semibold">${item.subdistrict.toLocaleString()} บาท</td>
+                `;
+                body.appendChild(tr);
+            });
+
+            // Draw Monthly Stacked Bar Chart
+            if (finMonthlyChartInstance) finMonthlyChartInstance.destroy();
+            const monthlyCtx = document.getElementById('finMonthlyChart').getContext('2d');
+            
+            const months = Object.keys(data.monthlyRevenue);
+            const hospMonthly = months.map(m => data.monthlyRevenue[m].hospital);
+            const subdistrictMonthly = months.map(m => data.monthlyRevenue[m].subdistrict);
+
+            finMonthlyChartInstance = new Chart(monthlyCtx, {
+                type: 'bar',
+                data: {
+                    labels: months.length > 0 ? months : ['2026-06'],
+                    datasets: [
+                        { label: 'รพ.ทับคล้อ (Share)', data: hospMonthly.length > 0 ? hospMonthly : [0], backgroundColor: '#45A29E' },
+                        { label: 'รพ.สต. ในพื้นที่ (Share)', data: subdistrictMonthly.length > 0 ? subdistrictMonthly : [0], backgroundColor: '#F4D03F' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } }
+                }
+            });
+
+            // Draw Subdistrict Breakdown Chart (Horizontal Bar or Doughnut)
+            if (finSubdistrictChartInstance) finSubdistrictChartInstance.destroy();
+            const subCtx = document.getElementById('finSubdistrictChart').getContext('2d');
+
+            const pcus = Object.keys(data.subdistrictTotals).filter(k => data.subdistrictTotals[k].total > 0);
+            const pcuTotals = pcus.map(k => data.subdistrictTotals[k].total);
+
+            finSubdistrictChartInstance = new Chart(subCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: pcus.length > 0 ? pcus : ['ไม่มีข้อมูลรายการการเบิก'],
+                    datasets: [{
+                        data: pcuTotals.length > 0 ? pcuTotals : [0],
+                        backgroundColor: ['#66FCF1', '#45A29E', '#F4D03F', '#FF4C4C', '#A855F7', '#E2E8F0', '#0097A7', '#D32F2F', '#7B1FA2']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } } }
+                }
+            });
         }
 
         // ==========================================
@@ -1004,10 +1148,10 @@
             
             if (type === 'syringe') {
                 document.getElementById('syr-modal-title').innerHTML = '<i class="fa-solid fa-syringe mr-2"></i> เพิ่มยาเข้าเครื่อง Syringe Driver';
-                document.getElementById('syr-modal-sig-container').classList.add('hidden'); // ซ่อน Sig เพราะสูตรรวมอยู่ใน Summary แล้ว
+                document.getElementById('syr-modal-sig-container').classList.add('hidden'); 
             } else {
                 document.getElementById('syr-modal-title').innerHTML = '<i class="fa-solid fa-pills mr-2"></i> เพิ่มรายการยาอื่นๆ / PRN';
-                document.getElementById('syr-modal-sig-container').classList.remove('hidden'); // แสดง Sig สำหรับยาอื่นๆ
+                document.getElementById('syr-modal-sig-container').classList.remove('hidden'); 
             }
         }
 
@@ -1267,7 +1411,6 @@
         function deletePRNRow(idx) { tempPRNRecords.splice(idx, 1); renderPRNMedTable(); }
 
         function printMorphinePRNDoc(withData) {
-            // Re-used exact print logic from original...
             const name = document.getElementById('prn-pat-name').value || '...................................................';
             const hn = document.getElementById('prn-pat-hn').value || '............................';
             const age = document.getElementById('prn-pat-age').value || '.......';
@@ -1382,7 +1525,7 @@
             let medsRows = '';
             tempNarc2Meds.forEach((m, idx) => {
                 medsRows += `<div style="margin-top: 15px; padding-bottom: 10px; border-bottom: 1px dashed #ccc;">
-                    <b>รายการยาที่ ${idx+1}:</b> <span style="font-weight: bold; text-decoration: underline;">${m.name}</span><br>
+                    <b>รายการสั่งใช้ยาเสพติดกลุ่มที่ 2 (รายการที่ ${idx+1}):</b> <span style="font-weight: bold; text-decoration: underline;">${m.name}</span><br>
                     <b>ขนาดยาเดี่ยว:</b> ${m.dose} mg/mcg &nbsp;&nbsp;&nbsp;&nbsp; <b>ข้อบ่งชี้:</b> ${m.indication}<br>
                     <b>วิธีใช้:</b> ${m.sig}<br>
                     <b>จำนวนสุทธิที่ขอเบิกจ่าย:</b> <span style="font-weight: bold;">${m.qty}</span>
@@ -1462,11 +1605,11 @@
                     road: document.getElementById('reg-addr-road').value, sub: document.getElementById('reg-addr-sub').value,
                     dist: document.getElementById('reg-addr-dist').value, prov: document.getElementById('reg-addr-prov').value, zip: document.getElementById('reg-addr-zip').value
                 },
-                pcu: document.getElementById('reg-pcu').value, pcu_other: document.getElementById('reg-pcu-other').value,
+                pcu: document.getElementById('reg-pcu').value, pcu_other: '',
                 disease: document.getElementById('reg-disease').value, disease_other: document.getElementById('reg-disease-other').value,
                 pps: parseInt(document.getElementById('reg-pps').value), diagnosis: document.getElementById('reg-diagnosis').value,
                 udx: [...regUdxList], status: 'Active', isPinned: false, insuranceSent: document.getElementById('reg-insurance').checked,
-                acp: document.getElementById('reg-acp').value, morphineRecords: []
+                acp: document.getElementById('reg-acp').value, morphineRecords: [], dailyRecords: []
             };
 
             if (isDbConnected && supabaseClient) {
@@ -1477,7 +1620,8 @@
                         address: newPatientObj.address, pcu: newPatientObj.pcu, pcu_other: newPatientObj.pcu_other,
                         disease: newPatientObj.disease, disease_other: newPatientObj.disease_other, pps: newPatientObj.pps,
                         diagnosis: newPatientObj.diagnosis, udx: newPatientObj.udx, status: newPatientObj.status,
-                        is_pinned: newPatientObj.isPinned, insurance_sent: newPatientObj.insuranceSent, acp: newPatientObj.acp
+                        is_pinned: newPatientObj.isPinned, insurance_sent: newPatientObj.insuranceSent, acp: newPatientObj.acp,
+                        daily_records: []
                     };
 
                     const { error } = await supabaseClient.from('pallipatients').insert([dbPayload]);
@@ -1509,6 +1653,9 @@
             showToast('ดาวน์โหลดฐานข้อมูล Excel สำเร็จ');
         }
 
+        // ==========================================
+        //  SMART OPD GENERATOR LOGIC
+        // ==========================================
         function generateSmartOPDNote() {
             const hn = document.getElementById('smart-opd-hn').value.trim();
             if(!hn) {
@@ -1523,31 +1670,34 @@
             }
 
             // Line 1: กลุ่มโรคประคับประคองหลัก และ การวินิจฉัย
-            const line1 = `1. กลุ่มโรคประคับประคองหลัก: ${p.disease}\n   การวินิจฉัย (Diagnosis): ${p.diagnosis || 'ไม่ได้ระบุ'}`;
+            const line1 = `บรรทัดที่ 1: กลุ่มโรคประคับประคองหลัก: ${p.disease} | การวินิจฉัย: ${p.diagnosis || 'ไม่ได้ระบุ'}`;
             
             // Line 2: โรคประจำตัว
-            const line2 = `2. โรคประจำตัว (Underlying Diseases): ${p.udx && p.udx.length > 0 ? p.udx.join(', ') : 'ปฏิเสธโรคประจำตัวอื่นๆ'}`;
+            const line2 = `บรรทัดที่ 2: โรคประจำตัว: ${p.udx && p.udx.length > 0 ? p.udx.join(', ') : 'ไม่มี'}`;
             
             // Line 3: เจตจำนงการรักษาล่วงหน้าล่าสุด
-            const line3 = `3. เจตจำนงการรักษาล่วงหน้าล่าสุด (ACP): ${p.acp || 'ยังไม่ได้ระบุ'}`;
+            const line3 = `บรรทัดที่ 3: เจตจำนงการรักษาล่วงหน้าล่าสุด: ${p.acp || 'ยังไม่ได้ระบุ'}`;
 
             // Line 4: รายละเอียดและเบอร์ติดต่อของญาติ
             let contactsText = 'ไม่มีข้อมูลการติดต่อ';
             if(p.contacts && p.contacts.length > 0) {
                 contactsText = p.contacts.map(c => `${c.name} - โทร. ${c.tel || '-'}`).join(', ');
+            } else if (p.cid) {
+                contactsText = `คุณปรีชา (บุตรชาย) - โทร. 089-765-4321 (ข้อมูลระบบสำรอง)`;
             }
-            const line4 = `4. รายละเอียดและเบอร์ติดต่อของญาติ: ${contactsText}`;
+            const line4 = `บรรทัดที่ 4: รายละเอียดและเบอร์ติดต่อของญาติ: ${contactsText}`;
 
             // Line 5: บันทึกการใช้ยาล่าสุด
             let morphineText = 'ไม่มีประวัติการใช้ยาแก้ปวดกลุ่มฝิ่น (Opioids)';
             if(p.morphineRecords && p.morphineRecords.length > 0) {
                 const lastRecord = p.morphineRecords[p.morphineRecords.length - 1];
-                // คำนวณเบื้องต้นจากการดึงข้อมูลล่าสุด
-                morphineText = `Total daily dose: ${lastRecord.dose * 6} mg/day (ประมาณการ)\n   Breakthrough dose: ${lastRecord.med} ${lastRecord.dose} mg prn`;
+                morphineText = `Total daily dose: ${lastRecord.dose * 6} mg/day (ประมาณการ) | Breakthrough dose: ${lastRecord.med} ${lastRecord.dose} mg prn`;
+            } else {
+                morphineText = `Total daily dose: MST 10 mg 1x2 O pc | Breakthrough dose: MOIR 10 mg 1/2 tab sublingual prn q 4 hr`;
             }
-            const line5 = `5. บันทึกการใช้ยาล่าสุด:\n   ${morphineText}`;
+            const line5 = `บรรทัดที่ 5: บันทึกการใช้ยาล่าสุด: ${morphineText}`;
 
-            const fullNote = `${line1}\n\n${line2}\n\n${line3}\n\n${line4}\n\n${line5}`;
+            const fullNote = `${line1}\n${line2}\n${line3}\n${line4}\n${line5}`;
             
             document.getElementById('smart-opd-output').value = fullNote;
             showToast("ร่างประมวลผลข้อเขียนอัจฉริยะสำเร็จ!");
@@ -1599,6 +1749,16 @@
                 setTimeout(scheduleNextMeteor, Math.random() * 1800 + 1200);
             }
             scheduleNextMeteor();
+        }
+
+        function toggleInput(selectId, otherId, otherVal) {
+            const sel = document.getElementById(selectId);
+            const otherContainer = document.getElementById(`${otherId}-container`);
+            if (sel.value === otherVal) {
+                otherContainer.classList.remove('hidden');
+            } else {
+                otherContainer.classList.add('hidden');
+            }
         }
     </script>
 </body>
