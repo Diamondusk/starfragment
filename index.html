@@ -1,0 +1,1477 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Starlight Palliative Care - โรงพยาบาลทับคล้อ</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- SheetJS (for Excel export) -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Kanit', 'sans-serif'],
+                    },
+                    colors: {
+                        space: {
+                            950: '#02040a',
+                            900: '#050a18',
+                            800: '#0c1635',
+                            700: '#172754',
+                            600: '#233875',
+                        },
+                        starlight: {
+                            cyan: '#66FCF1',
+                            blue: '#45A29E',
+                            gold: '#F4D03F',
+                            red: '#FF4C4C'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #02040a;
+            color: #E2E8F0;
+            overflow-x: hidden;
+        }
+
+        /* --- STARRY BACKGROUND --- */
+        .stars-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: -2;
+            background: radial-gradient(ellipse at bottom, #09122c 0%, #02040a 100%);
+        }
+
+        .star {
+            position: absolute;
+            background-color: #ffffff;
+            border-radius: 50%;
+            animation: twinkle infinite alternate ease-in-out;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.1; transform: scale(0.6); box-shadow: 0 0 2px rgba(255,255,255,0.4); }
+            50% { opacity: 0.9; box-shadow: 0 0 12px #66FCF1; }
+            100% { opacity: 1; transform: scale(1.3); box-shadow: 0 0 18px #ffffff, 0 0 28px #F4D03F; }
+        }
+
+        /* --- DIAGONAL SLANTED METEOR SHOWER --- */
+        .meteor-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .meteor {
+            position: absolute;
+            width: 1.5px;
+            height: 150px;
+            background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.9), #66FCF1);
+            transform: rotate(35deg);
+            transform-origin: top center;
+            opacity: 0;
+            animation: fall linear forwards;
+        }
+
+        .meteor::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: -2.5px;
+            width: 7px; height: 7px;
+            background-color: #ffffff;
+            border-radius: 50%;
+            box-shadow: 0 0 25px 10px rgba(102, 252, 241, 0.95), 0 0 45px 18px rgba(255, 255, 255, 0.8);
+        }
+
+        @keyframes fall {
+            0% { transform: rotate(35deg) translateY(-250px); opacity: 1; }
+            100% { transform: rotate(35deg) translateY(2800px); opacity: 0; }
+        }
+
+        /* --- GLASSMORPHISM & SHADOWS --- */
+        .glass-panel {
+            background: rgba(12, 22, 53, 0.45);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(102, 252, 241, 0.15);
+            border-radius: 1rem;
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.6), inset 0 0 25px rgba(102, 252, 241, 0.05);
+        }
+
+        .glass-input {
+            background: rgba(2, 4, 10, 0.45);
+            border: 1px solid rgba(102, 252, 241, 0.25);
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .glass-input:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: #66FCF1;
+            box-shadow: 0 0 15px rgba(102, 252, 241, 0.45);
+            outline: none;
+        }
+
+        .space-radio { accent-color: #66FCF1; width: 1.2rem; height: 1.2rem; cursor: pointer; }
+
+        .view-section { display: none; animation: fadeIn 0.4s ease-in-out; }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        #toast {
+            visibility: hidden;
+            min-width: 340px;
+            background-color: rgba(12, 22, 53, 0.95);
+            color: #66FCF1;
+            border: 1px solid #66FCF1;
+            box-shadow: 0 0 25px rgba(102, 252, 241, 0.5);
+            text-align: center;
+            border-radius: 12px;
+            padding: 18px;
+            position: fixed;
+            z-index: 100;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            font-size: 14px;
+            font-weight: 500;
+            word-break: break-word;
+        }
+        #toast.show {
+            visibility: visible;
+            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+        @keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 30px; opacity: 1; } }
+        @keyframes fadeout { from { bottom: 30px; opacity: 1; } to { bottom: 0; opacity: 0; } }
+
+        /* --- PRINT STYLES --- */
+        @media print {
+            body { background: white !important; color: black !important; font-family: 'Sarabun', 'Kanit', sans-serif !important; }
+            .no-print { display: none !important; }
+            #print-container { display: block !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
+            .print-card { 
+                border: 1px solid black !important; 
+                color: black !important; 
+                background: white !important; 
+                padding: 30px !important; 
+                font-size: 11pt !important;
+                line-height: 1.6 !important;
+            }
+            .print-title { font-size: 20pt; font-weight: bold; text-align: center; margin-bottom: 20px; color: black !important; }
+        }
+        #print-container { display: none; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <!-- Starry Night Background Elements -->
+    <div class="stars-bg" id="stars-container"></div>
+    <div class="meteor-container" id="meteor-container"></div>
+
+    <!-- Sidebar Navigation -->
+    <aside class="w-80 glass-panel m-4 flex flex-col hidden md:flex z-10 overflow-y-auto no-print">
+        <div class="p-6 text-center border-b border-starlight-cyan/20 shrink-0">
+            <i class="fa-solid fa-hands-holding-circle text-4xl text-starlight-gold mb-3 animate-pulse"></i>
+            <h1 class="text-2xl font-bold text-starlight-cyan tracking-wider">Starlight Care</h1>
+            <p class="text-xs text-gray-400 mt-1">โรงพยาบาลทับคล้อ</p>
+            
+            <!-- Connection Status Badge -->
+            <div class="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-space-950 border border-white/10 text-[11px]">
+                <span id="db-status-dot" class="w-2.5 h-2.5 rounded-full bg-yellow-500 animate-ping"></span>
+                <span id="db-status-text" class="text-gray-300">กำลังตรวจสอบระบบ...</span>
+            </div>
+        </div>
+        
+        <nav class="flex-1 p-4 space-y-1">
+            <button onclick="switchView('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center p-3 rounded-lg text-starlight-cyan bg-white/5 transition-all">
+                <i class="fa-solid fa-chart-pie w-6"></i> Dashboard ภาพรวม
+            </button>
+            
+            <div class="pt-4 pb-1">
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider pl-3">ระบบจัดการผู้ป่วย</p>
+            </div>
+            <button onclick="switchView('patient-register')" class="nav-btn w-full flex items-center p-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">
+                <i class="fa-solid fa-user-plus w-6"></i> ลงทะเบียนผู้ป่วยใหม่
+            </button>
+
+            <div class="pt-4 pb-1">
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider pl-3">เวชระเบียนแบบฟอร์มรวม</p>
+            </div>
+            <button onclick="switchView('document-center')" id="nav-document-center" class="nav-btn w-full flex items-center p-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all">
+                <i class="fa-solid fa-folder-open w-6"></i> คลังเอกสาร & สารเสพติด
+            </button>
+        </nav>
+
+        <div class="p-4 border-t border-starlight-cyan/20 shrink-0 bg-space-950/80">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full bg-starlight-cyan flex items-center justify-center text-space-900 font-bold shadow-[0_0_10px_rgba(102,252,241,0.6)]">
+                    <i class="fa-solid fa-user-doctor"></i>
+                </div>
+                <div class="text-sm">
+                    <p class="text-white font-medium">นพ.ยตนา มาพันธ์สุ</p>
+                    <p class="text-starlight-gold text-xs">แพทย์เวชศาสตร์ครอบครัว</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Mobile Nav Header -->
+    <div class="md:hidden fixed top-0 left-0 w-full glass-panel z-20 flex justify-between items-center p-4 rounded-none border-x-0 border-t-0 no-print">
+        <h1 class="text-lg font-bold text-starlight-cyan"><i class="fa-solid fa-hands-holding-circle text-starlight-gold"></i> Starlight</h1>
+        <div class="flex items-center gap-4">
+            <span id="db-status-dot-mobile" class="w-2.5 h-2.5 rounded-full bg-yellow-500"></span>
+            <div class="flex space-x-4 text-xl text-gray-400">
+                <button onclick="switchView('dashboard')"><i class="fa-solid fa-chart-pie"></i></button>
+                <button onclick="switchView('patient-register')"><i class="fa-solid fa-user-plus"></i></button>
+                <button onclick="switchView('document-center')"><i class="fa-solid fa-folder-open text-starlight-cyan"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Panel -->
+    <main class="flex-1 overflow-y-auto p-4 md:p-8 pt-20 md:pt-8 z-10 no-print" id="main-content">
+        
+        <!-- SECTION 1: DASHBOARD VIEW -->
+        <section id="dashboard" class="view-section active h-full max-w-7xl mx-auto pb-12">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                <div>
+                    <h2 class="text-3xl font-extrabold text-white tracking-tight"><i class="fa-solid fa-chart-line text-starlight-cyan mr-2"></i> Dashboard ภาพรวม</h2>
+                    <p class="text-gray-400">สถิติและข้อมูลเชิงลึกของผู้ป่วยประคับประคอง รพ.ทับคล้อ จากระบบบน Supabase</p>
+                </div>
+                <button onclick="exportAllToExcel()" class="bg-[#107c41] hover:bg-[#107c41]/80 text-white font-bold px-4 py-2 rounded-lg transition flex items-center gap-2 shadow-[0_0_15px_rgba(16,124,65,0.4)]">
+                    <i class="fa-solid fa-file-excel text-lg"></i> Export ฐานข้อมูล (Excel)
+                </button>
+            </div>
+
+            <!-- Dynamic KPI Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-5 mb-8">
+                <div class="glass-panel p-6 border-l-4 border-l-starlight-cyan">
+                    <p class="text-gray-400 text-sm">ผู้ป่วยสะสมทั้งหมด</p>
+                    <h3 class="text-4xl font-extrabold text-white mt-2" id="kpi-total">0</h3>
+                </div>
+                <div class="glass-panel p-6 border-l-4 border-l-starlight-gold">
+                    <p class="text-gray-400 text-sm">ผู้ป่วยดูแลพิเศษ (Focus Star)</p>
+                    <h3 class="text-4xl font-extrabold text-starlight-gold mt-2 flex items-center gap-2" id="kpi-pinned">
+                        0 <i class="fa-solid fa-star text-sm animate-pulse"></i>
+                    </h3>
+                </div>
+                <div class="glass-panel p-6 border-l-4 border-l-pink-400">
+                    <p class="text-gray-400 text-sm">ผู้ป่วยในปัจจุบัน (Active)</p>
+                    <h3 class="text-4xl font-extrabold text-pink-400 mt-2" id="kpi-active">0</h3>
+                </div>
+                <div class="glass-panel p-6 border-l-4 border-l-green-400">
+                    <p class="text-gray-400 text-sm">อัตราเยี่ยมบ้านผ่านเกณฑ์ (>=6 ครั้ง)</p>
+                    <h3 class="text-4xl font-extrabold text-green-400 mt-2" id="kpi-insurance">0%</h3>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="glass-panel p-6">
+                    <h3 class="text-lg font-bold text-white mb-4"><i class="fa-solid fa-virus-slash text-pink-400 mr-2"></i> สัดส่วนโรคหลักประคับประคอง</h3>
+                    <div class="h-64 flex justify-center"><canvas id="diseaseChart"></canvas></div>
+                </div>
+                <div class="glass-panel p-6">
+                    <h3 class="text-lg font-bold text-white mb-4"><i class="fa-solid fa-map-location-dot text-starlight-cyan mr-2"></i> จำนวนผู้ป่วยตามรพ.สต.</h3>
+                    <div class="h-64"><canvas id="pcuChart"></canvas></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: PATIENT REGISTER FORM -->
+        <section id="patient-register" class="view-section h-full max-w-4xl mx-auto pb-12">
+            <h2 class="text-3xl font-bold text-white mb-2"><i class="fa-solid fa-user-plus text-starlight-cyan mr-2"></i> ลงทะเบียนประวัติผู้ป่วยใหม่</h2>
+            <p class="text-gray-400 mb-8">กรอกข้อมูลพื้นฐานให้ครบเพื่อสร้างเวชระเบียนแบบองค์รวมและจัดเก็บขึ้นระบบคลาวด์</p>
+
+            <form onsubmit="handlePatientRegistrationSubmit(event)" class="space-y-6">
+                <!-- Personal Info -->
+                <div class="glass-panel p-6 border-t-4 border-t-starlight-cyan">
+                    <h3 class="text-xl text-starlight-cyan mb-4 border-b border-white/10 pb-2">ข้อมูลส่วนบุคคล</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div><label class="block text-sm text-gray-400 mb-1">HN <span class="text-red-500">*</span></label><input type="text" required id="reg-hn" class="glass-input w-full p-2 rounded"></div>
+                        <div><label class="block text-sm text-gray-400 mb-1">เลขบัตรประชาชน <span class="text-red-500">*</span></label><input type="text" required id="reg-cid" class="glass-input w-full p-2 rounded"></div>
+                        <div><label class="block text-sm text-gray-400 mb-1">สิทธิ์การรักษา</label>
+                            <select id="reg-right" onchange="toggleInput('reg-right', 'reg-right-other', 'อื่นๆ')" class="glass-input w-full p-2 rounded text-white">
+                                <option>UC ผู้สูงอายุ</option><option>กรมบัญชีกลาง</option><option>ประกันสังคม</option><option>UC นอกเขต</option><option>อื่นๆ</option>
+                            </select>
+                        </div>
+                        <div id="reg-right-other-container" class="hidden"><label class="block text-sm text-starlight-gold mb-1">ระบุสิทธิ์อื่น ๆ</label><input type="text" id="reg-right-other" class="glass-input w-full p-2 rounded"></div>
+                        <div class="md:col-span-2"><label class="block text-sm text-gray-400 mb-1">ชื่อ - นามสกุล <span class="text-red-500">*</span></label><input type="text" required id="reg-name" class="glass-input w-full p-2 rounded"></div>
+                        <div><label class="block text-sm text-gray-400 mb-1">อายุ (ปี) <span class="text-red-500">*</span></label><input type="number" required id="reg-age" class="glass-input w-full p-2 rounded"></div>
+                    </div>
+                </div>
+
+                <!-- Address -->
+                <div class="glass-panel p-6">
+                    <h3 class="text-xl text-starlight-gold mb-4 border-b border-white/10 pb-2">ที่อยู่และพื้นที่รับผิดชอบ</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-6 gap-3 mb-4">
+                        <div><label class="block text-xs text-gray-400 mb-1">บ้านเลขที่</label><input type="text" id="reg-addr-no" class="glass-input w-full p-2 rounded"></div>
+                        <div><label class="block text-xs text-gray-400 mb-1">หมู่ที่</label><input type="text" id="reg-addr-moo" class="glass-input w-full p-2 rounded"></div>
+                        <div class="col-span-2"><label class="block text-xs text-gray-400 mb-1">ถนน / ซอย</label><input type="text" id="reg-addr-road" class="glass-input w-full p-2 rounded"></div>
+                        <div class="col-span-2"><label class="block text-xs text-gray-400 mb-1">ตำบล</label><input type="text" id="reg-addr-sub" class="glass-input w-full p-2 rounded"></div>
+                        <div class="col-span-2"><label class="block text-xs text-gray-400 mb-1">อำเภอ</label><input type="text" id="reg-addr-dist" class="glass-input w-full p-2 rounded" value="ทับคล้อ"></div>
+                        <div class="col-span-2"><label class="block text-xs text-gray-400 mb-1">จังหวัด</label><input type="text" id="reg-addr-prov" class="glass-input w-full p-2 rounded" value="พิจิตร"></div>
+                        <div class="col-span-2"><label class="block text-xs text-gray-400 mb-1">รหัสไปรษณีย์</label><input type="text" id="reg-addr-zip" class="glass-input w-full p-2 rounded" value="66230"></div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-1">เขตรพ.สต.รับผิดชอบ <span class="text-red-500">*</span></label>
+                            <select id="reg-pcu" onchange="toggleInput('reg-pcu', 'reg-pcu-other', 'นอกเขต')" class="glass-input w-full p-2 rounded">
+                                <option>PCU ทับคล้อ</option><option>รพ.สต. บ้านสายดงยาง</option><option>รพ.สต. เขาทราย</option><option>รพ.สต. บ้านวังแดง</option><option>รพ.สต. บ้านเขาเจ็ดลูก(ไดวน)</option><option>รพ.สต. ตำบลเขาเจ็ดลูก</option><option>รพ.สต. บ้านท้ายทุ่งหมู่2</option><option>รพ.สต. ตำบลท้ายทุ่ง(วังกระชัน)</option><option>รพ.สต. บ้านไดอีเผือก</option><option>นอกเขต</option>
+                            </select>
+                        </div>
+                        <div id="reg-pcu-other-container" class="hidden"><label class="block text-sm text-starlight-gold mb-1">ระบุนอกเขต</label><input type="text" id="reg-pcu-other" class="glass-input w-full p-2 rounded"></div>
+                    </div>
+                </div>
+
+                <!-- Medical Info -->
+                <div class="glass-panel p-6 border-t-4 border-t-pink-500">
+                    <h3 class="text-xl text-pink-400 mb-4 border-b border-white/10 pb-2">ข้อมูลทางการแพทย์และกลุ่มโรค</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-1">กลุ่มโรคประคับประคองหลัก</label>
+                            <select id="reg-disease" onchange="toggleInput('reg-disease', 'reg-disease-other', 'อื่นๆ')" class="glass-input w-full p-2 rounded">
+                                <option>Cancer</option><option>ESRD</option><option>CVA</option><option>COPD</option><option>Cirrhosis</option><option>Geriatric care</option><option>อื่นๆ</option>
+                            </select>
+                        </div>
+                        <div id="reg-disease-other-container" class="hidden"><label class="block text-sm text-starlight-gold mb-1">ระบุกลุ่มโรคอื่น ๆ</label><input type="text" id="reg-disease-other" class="glass-input w-full p-2 rounded"></div>
+                        
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-1">PPS Score (ประเมินกิจวัตร)</label>
+                            <select id="reg-pps" class="glass-input w-full p-2 rounded text-starlight-gold font-bold">
+                                <option value="100">100%</option><option value="90">90%</option><option value="80">80%</option><option value="70">70%</option><option value="60">60%</option><option value="50">50%</option><option value="40">40%</option><option value="30">30%</option><option value="20">20%</option><option value="10">10%</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm text-gray-400 mb-1">การวินิจฉัยโรคอย่างละเอียด (Primary Diagnosis)</label>
+                            <textarea id="reg-diagnosis" rows="2" class="glass-input w-full p-2 rounded"></textarea>
+                        </div>
+                    </div>
+                    <div class="bg-space-950/40 p-4 rounded-lg border border-white/10">
+                        <label class="block text-sm text-starlight-cyan mb-2 font-medium">โรคประจำตัวอื่น ๆ (Underlying Diseases)</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="reg-udx-input" class="glass-input flex-1 p-2 rounded text-sm" placeholder="พิมพ์ชื่อโรคประจำตัวแล้วกดบวก">
+                            <button type="button" onclick="addRegisterUdxItem()" class="bg-starlight-cyan text-space-950 font-bold px-4 rounded-lg"><i class="fa-solid fa-plus"></i></button>
+                        </div>
+                        <ul id="reg-udx-list" class="mt-3 space-y-2"></ul>
+                    </div>
+                </div>
+
+                <!-- Management & Contacts -->
+                <div class="glass-panel p-6 border-t-4 border-t-green-400">
+                    <h3 class="text-xl text-green-400 mb-4 border-b border-white/10 pb-2">แผนและข้อมูลการติดต่อญาติ</h3>
+                    <div class="mb-4">
+                        <label class="block text-sm text-gray-400 mb-1">Advance Care Plan ล่วงหน้า</label>
+                        <textarea id="reg-acp" rows="2" class="glass-input w-full p-2 rounded" placeholder="ระบุ No CPR, No Intubation หรือ อื่นๆ..."></textarea>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-sm text-starlight-gold mb-2 font-medium">รายชื่อญาติและผู้ดูแลประสานงาน</label>
+                        <div id="reg-contact-wrapper" class="space-y-3"></div>
+                        <button type="button" onclick="addRegisterContactRow()" class="mt-3 text-xs text-starlight-cyan hover:underline"><i class="fa-solid fa-plus mr-1"></i> เพิ่มญาติเพิ่มเติม</button>
+                    </div>
+                    <div class="p-4 rounded-lg bg-[#107c41]/10 border border-[#107c41]/30">
+                        <label class="flex items-center space-x-3 cursor-pointer">
+                            <input type="checkbox" id="reg-insurance" class="space-radio w-5 h-5">
+                            <span class="text-white font-medium">ส่งงานประกัน รพ.ทับคล้อ เรียบร้อยแล้ว</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-4">
+                    <button type="button" onclick="switchView('dashboard')" class="px-6 py-2 rounded-lg bg-white/5 text-gray-400 hover:text-white transition">ยกเลิก</button>
+                    <button type="submit" class="px-6 py-2 rounded-lg bg-starlight-cyan text-space-950 font-bold hover:bg-white transition">บันทึกข้อมูลผู้ป่วย</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- SECTION 3: UMBRELLA DOCUMENT CENTER -->
+        <section id="document-center" class="view-section h-full max-w-7xl mx-auto pb-12">
+            <h2 class="text-3xl font-extrabold text-white mb-2"><i class="fa-solid fa-folder-open text-starlight-gold mr-2"></i> คลังเอกสาร & สารเสพติด</h2>
+            <p class="text-gray-400 mb-6">คลังแบบฟอร์มเวชระเบียน และยาเสพติดให้โทษประเภทยากลุ่ม 2</p>
+
+            <div class="glass-panel p-1">
+                <div class="flex flex-wrap border-b border-white/10 bg-space-950/40 rounded-t-lg">
+                    <button onclick="switchDocTab('morphine')" id="btn-doc-morphine" class="doc-tab-btn flex-1 py-3 text-sm font-semibold text-starlight-cyan border-b-2 border-starlight-cyan bg-white/5 transition"><i class="fa-solid fa-clipboard-list mr-1"></i> บันทึก Morphine PRN</button>
+                    <button onclick="switchDocTab('narcotic2')" id="btn-doc-narcotic2" class="doc-tab-btn flex-1 py-3 text-sm font-semibold text-gray-400 border-b-2 border-transparent transition"><i class="fa-solid fa-file-prescription mr-1"></i> ยาเสพติด ป.2 (Morphine)</button>
+                    <button onclick="switchDocTab('syringe')" id="btn-doc-syringe" class="doc-tab-btn flex-1 py-3 text-sm font-semibold text-gray-400 border-b-2 border-transparent transition"><i class="fa-solid fa-pump-medical mr-1"></i> Syringe Driver</button>
+                </div>
+
+                <div class="p-6">
+                    <!-- Morphine PRN Logs -->
+                    <div id="doc-sub-morphine" class="doc-sub-content block">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-bold text-pink-400"><i class="fa-solid fa-clipboard-list mr-2"></i> บันทึกการให้ยา Morphine ตามอาการ (PRN Logs)</h3>
+                            <div class="flex gap-2">
+                                <button onclick="printMorphinePRNDoc(true)" class="bg-pink-500 hover:bg-pink-400 text-white text-xs font-bold px-3 py-1.5 rounded transition flex items-center gap-1">
+                                    <i class="fa-solid fa-print"></i> พิมพ์ใบบันทึกผล
+                                </button>
+                                <button onclick="printMorphinePRNDoc(false)" class="bg-gray-600 hover:bg-gray-500 text-white text-xs font-bold px-3 py-1.5 rounded transition flex items-center gap-1">
+                                    <i class="fa-solid fa-border-none"></i> พิมพ์ตารางเปล่า
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="glass-panel p-6 space-y-4">
+                            <!-- Patient Selector & Auto-fill -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="col-span-1">
+                                    <label class="block text-xs text-gray-400 mb-1">เลือกผู้ป่วยเพื่อดึงประวัติมาพิมพ์</label>
+                                    <select id="prn-select-patient" onchange="autoFillPRNPatient()" class="glass-input w-full p-2.5 rounded text-sm text-starlight-cyan"></select>
+                                </div>
+                                <div><label class="block text-xs text-gray-400 mb-1">ชื่อ-นามสกุล</label><input type="text" id="prn-pat-name" class="glass-input w-full p-2.5 rounded text-sm text-white" placeholder="ดึงข้อมูลอัตโนมัติ"></div>
+                                <div><label class="block text-xs text-gray-400 mb-1">HN</label><input type="text" id="prn-pat-hn" class="glass-input w-full p-2.5 rounded text-sm text-starlight-gold" placeholder="HN"></div>
+                                <div><label class="block text-xs text-gray-400 mb-1">เลขประจำตัวประชาชน</label><input type="text" id="prn-pat-cid" class="glass-input w-full p-2.5 rounded text-sm text-white"></div>
+                                <div><label class="block text-xs text-gray-400 mb-1">อายุ (ปี)</label><input type="number" id="prn-pat-age" class="glass-input w-full p-2.5 rounded text-sm text-white"></div>
+                                <div><label class="block text-xs text-gray-400 mb-1">ที่อยู่</label><input type="text" id="prn-pat-address" class="glass-input w-full p-2.5 rounded text-sm text-white"></div>
+                            </div>
+
+                            <!-- Medicine description header -->
+                            <div class="bg-space-950/40 p-4 rounded-lg border border-white/5 space-y-3">
+                                <h4 class="text-xs font-bold text-starlight-gold uppercase tracking-wider">ข้อมูลขนาดยาและการบริหารยาตั้งต้น</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                    <div>
+                                        <label class="block text-xs text-gray-400 mb-1">ตัวเลือกยากลุ่มฝิ่น (Morphine)</label>
+                                        <select id="prn-med-name" class="glass-input w-full p-2 rounded text-xs text-pink-400 font-bold">
+                                            <option>Morphine injection 10 mg/ml</option>
+                                            <option>Morphine syrup 2 mg/ml (60ml)</option>
+                                            <option>MOIR (10)</option>
+                                        </select>
+                                    </div>
+                                    <div><label class="block text-xs text-gray-400 mb-1">ขนาดเดี่ยวต่อครั้ง (mg)</label><input type="text" id="prn-med-dose" value="2.5 mg" class="glass-input w-full p-2 rounded text-xs"></div>
+                                    <div><label class="block text-xs text-gray-400 mb-1">ขนาดและวิธีบริหาร (Sig.)</label><input type="text" id="prn-med-sig" value="ทานหรือหยดใต้ลิ้น ทุกๆ 4 ชม. เมื่อมีอาการปวดหรือเหนื่อย" class="glass-input w-full p-2 rounded text-xs"></div>
+                                </div>
+                            </div>
+
+                            <!-- Interactive PRN records table -->
+                            <div class="bg-white/5 p-4 rounded-lg border border-white/10 space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <h4 class="text-sm font-bold text-starlight-cyan">ประวัติรายการบริหารยา PRN (หน้าเอกสาร)</h4>
+                                    <button type="button" onclick="addPRNTableRow()" class="bg-starlight-cyan text-space-950 text-xs font-bold px-3 py-1.5 rounded hover:bg-white transition">
+                                        <i class="fa-solid fa-plus"></i> เพิ่มแถวบริหารยา
+                                    </button>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left text-xs">
+                                        <thead>
+                                            <tr class="text-gray-400 border-b border-white/10">
+                                                <th class="p-2">วันที่</th>
+                                                <th class="p-2">เวลา</th>
+                                                <th class="p-2">ปวด/หอบ ก่อนให้ยา (0-10)</th>
+                                                <th class="p-2">ขนาดยาที่ให้ (mg)</th>
+                                                <th class="p-2">ปวด/หอบ หลังให้ยา (0-10)</th>
+                                                <th class="p-2 text-center">เครื่องมือ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="prn-med-list-body">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Narcotic Category 2 Approval -->
+                    <div id="doc-sub-narcotic2" class="doc-sub-content hidden">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-bold text-pink-400"><i class="fa-solid fa-file-prescription mr-2"></i> แบบคำขออนุมัติสั่งใช้ยาเสพติดให้โทษประเภทที่ 2</h3>
+                            <button onclick="printNarcotic2Form()" class="bg-pink-500 hover:bg-pink-400 text-white text-xs font-bold px-3 py-1.5 rounded transition flex items-center gap-1">
+                                <i class="fa-solid fa-print"></i> พิมพ์ใบเบิกยา (PDF)
+                            </button>
+                        </div>
+                        <div class="glass-panel p-6 space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="col-span-1">
+                                    <label class="block text-xs text-gray-400 mb-1">เลือกผู้ป่วยเพื่อกรอกอัตโนมัติ</label>
+                                    <select id="narc2-select-patient" onchange="autoFillNarcoticPatient()" class="glass-input w-full p-2.5 rounded text-sm text-starlight-cyan"></select>
+                                </div>
+                                <div><label class="block text-xs text-gray-400 mb-1">ชื่อแพทย์ผู้สั่งการรักษา</label><input type="text" id="narc2-doc-name" value="นพ.ยตนา มาพันธ์สุ" class="glass-input w-full p-2.5 rounded text-sm"></div>
+                                <div><label class="block text-xs text-gray-400 mb-1">เลขที่ใบประกอบวิชาชีพ (เลข ว.)</label><input type="text" id="narc2-doc-license" value="67650" class="glass-input w-full p-2.5 rounded text-sm"></div>
+                            </div>
+                            <div class="bg-space-950/40 p-4 rounded-lg border border-white/5 space-y-3">
+                                <h4 class="text-xs font-bold text-starlight-gold">ตรวจสอบข้อมูลผู้ป่วยสำหรับการเบิกจ่าย</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                                    <div>HN: <input type="text" id="narc2-pat-hn" readonly class="glass-input w-full p-2 rounded text-gray-400 mt-1"></div>
+                                    <div>เลขบัตร ปชช: <input type="text" id="narc2-pat-cid" readonly class="glass-input w-full p-2 rounded text-gray-400 mt-1"></div>
+                                    <div>ชื่อ-สกุล: <input type="text" id="narc2-pat-name" readonly class="glass-input w-full p-2 rounded text-gray-400 mt-1"></div>
+                                    <div class="md:col-span-3">ที่อยู่จัดส่ง/รับยา: <input type="text" id="narc2-pat-address" readonly class="glass-input w-full p-2 rounded text-gray-400 mt-1"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="block text-xs text-gray-400 mb-1">วันที่รับยา</label>
+                                <input type="date" id="narc2-date" class="glass-input w-36 p-2.5 rounded text-sm text-starlight-cyan">
+                            </div>
+
+                            <!-- MULTIPLE MEDICATION LIST FOR REQUEST FORM -->
+                            <div class="bg-white/5 p-4 rounded-lg border border-white/10 space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <h4 class="text-sm font-bold text-starlight-cyan">รายการยาเสพติด ป.2 ในแผนคำขอเบิก</h4>
+                                    <button type="button" onclick="openAddNarc2MedModal()" class="bg-starlight-cyan text-space-950 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-white transition">
+                                        <i class="fa-solid fa-plus-circle"></i> เพิ่มรายการยาเสพติด
+                                    </button>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left text-xs">
+                                        <thead>
+                                            <tr class="text-gray-400 border-b border-white/10">
+                                                <th class="p-2">ชื่อยา</th>
+                                                <th class="p-2">Indication</th>
+                                                <th class="p-2">ขนาดยาเดี่ยว</th>
+                                                <th class="p-2">วิธีบริหาร (Sig.)</th>
+                                                <th class="p-2">จำนวนสั่งจ่าย</th>
+                                                <th class="p-2 text-center">จัดการ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="narc2-meds-list-body">
+                                            <tr><td colspan="6" class="p-4 text-center text-gray-500">กรุณากดเพิ่มรายการยาอย่างน้อย 1 รายการเพื่อพิมพ์ออกเอกสาร</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Syringe Driver System -->
+                    <div id="doc-sub-syringe" class="doc-sub-content hidden">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-bold text-starlight-cyan"><i class="fa-solid fa-pump-medical mr-2"></i> ระบบติดตามและสั่งใช้ Syringe Driver</h3>
+                            <button onclick="printSyringeDriverForm()" class="bg-starlight-cyan text-space-950 text-xs font-bold px-3 py-1.5 rounded transition flex items-center gap-1 hover:bg-white">
+                                <i class="fa-solid fa-print"></i> พิมพ์ใบสั่ง Syringe Driver (PDF)
+                            </button>
+                        </div>
+
+                        <div class="glass-panel p-6 space-y-6">
+                            <!-- Patient Info -->
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                <div class="col-span-1 md:col-span-2">
+                                    <label class="block text-xs text-gray-400 mb-1">เลือกผู้ป่วย</label>
+                                    <select id="syr-select-patient" onchange="autoFillSyrPatient()" class="glass-input w-full p-2.5 rounded text-sm text-starlight-cyan"></select>
+                                </div>
+                                <div><label class="block text-xs text-gray-400 mb-1">HN</label><input type="text" id="syr-pat-hn" readonly class="glass-input w-full p-2.5 rounded text-sm text-gray-400"></div>
+                                <div><label class="block text-xs text-gray-400 mb-1">วันที่สั่งใช้</label><input type="date" id="syr-date" class="glass-input w-full p-2.5 rounded text-sm text-starlight-gold"></div>
+                            </div>
+
+                            <!-- Device and Formula Config -->
+                            <div class="bg-space-950/40 p-4 rounded-lg border border-starlight-cyan/30">
+                                <h4 class="text-sm font-bold text-starlight-cyan mb-3">ตั้งค่าเครื่องและการให้สารน้ำ (Syringe Driver Settings)</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                    <div>
+                                        <label class="block text-xs text-gray-400 mb-1">อุปกรณ์ใส่ยา</label>
+                                        <select id="syr-device" onchange="generateSyringeSummary()" class="glass-input w-full p-2.5 rounded text-sm text-starlight-gold font-bold">
+                                            <option value="Syringe driver 22 ml">Syringe driver 22 ml</option>
+                                            <option value="Surefuser (2day)">Surefuser (2day)</option>
+                                            <option value="Surefuser (3day)">Surefuser (3day)</option>
+                                        </select>
+                                    </div>
+                                    <div><label class="block text-xs text-gray-400 mb-1">NSS up to</label><input type="text" id="syr-nss" oninput="generateSyringeSummary()" value="22 ml" class="glass-input w-full p-2.5 rounded text-sm"></div>
+                                    <div><label class="block text-xs text-gray-400 mb-1">SC drip in</label><input type="text" id="syr-drip" oninput="generateSyringeSummary()" value="24 hr" class="glass-input w-full p-2.5 rounded text-sm"></div>
+                                </div>
+
+                                <!-- Syringe Meds Table -->
+                                <div class="mb-4 border-t border-white/10 pt-4">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <label class="block text-xs text-gray-400">รายการยาที่ผสมในเครื่อง (Syringe Medications)</label>
+                                        <button type="button" onclick="openSyrAddMedModal('syringe')" class="bg-starlight-cyan text-space-950 text-xs font-bold px-3 py-1 rounded hover:bg-white transition"><i class="fa-solid fa-plus"></i> เพิ่มยาเข้าเครื่อง</button>
+                                    </div>
+                                    <div class="overflow-x-auto bg-black/20 rounded border border-white/5">
+                                        <table class="w-full text-left text-xs">
+                                            <thead>
+                                                <tr class="text-gray-400 border-b border-white/10 bg-space-900/50">
+                                                    <th class="p-2">ชื่อยา</th>
+                                                    <th class="p-2">ขนาด/ปริมาณ</th>
+                                                    <th class="p-2 text-center">จัดการ</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="syr-meds-list-body">
+                                                <tr><td colspan="3" class="p-3 text-center text-gray-500">ยังไม่มีรายการยาในเครื่อง</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!-- Auto-generated Summary -->
+                                <div>
+                                    <label class="block text-xs text-starlight-gold mb-1"><i class="fa-solid fa-wand-magic-sparkles"></i> สรุปสูตรยาใน Syringe Driver (แก้ไขข้อความได้)</label>
+                                    <textarea id="syr-summary-output" rows="2" class="glass-input w-full p-2.5 rounded text-sm text-starlight-cyan font-bold bg-starlight-cyan/5 border-starlight-cyan/50"></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Other Meds Table -->
+                            <div class="bg-white/5 p-4 rounded-lg border border-white/10">
+                                <div class="flex justify-between items-center mb-3">
+                                    <h4 class="text-sm font-bold text-white">รายการยาอื่นๆ / ยาฉุกเฉิน (Other Medications)</h4>
+                                    <button type="button" onclick="openSyrAddMedModal('other')" class="bg-white/20 text-white text-xs font-bold px-3 py-1.5 rounded hover:bg-white/30 transition"><i class="fa-solid fa-plus"></i> เพิ่มยาอื่นๆ</button>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left text-xs">
+                                        <thead>
+                                            <tr class="text-gray-400 border-b border-white/10">
+                                                <th class="p-2">ชื่อยา</th>
+                                                <th class="p-2">ขนาดยา / จำนวน</th>
+                                                <th class="p-2">วิธีบริหาร (Sig.)</th>
+                                                <th class="p-2 text-center">จัดการ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="syr-other-meds-body">
+                                            <tr><td colspan="4" class="p-3 text-center text-gray-500">ไม่มีรายการยาอื่นๆ</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal for Adding Medication to Narcotic 2 Form -->
+    <div id="narc2-add-med-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden no-print">
+        <div class="glass-panel p-6 max-w-lg w-full m-4 border border-pink-500/40 bg-space-950">
+            <h3 class="text-xl font-bold text-pink-400 mb-4"><i class="fa-solid fa-pills mr-2"></i> เพิ่มรายการยาเสพติดประเภทที่ 2</h3>
+            <form onsubmit="handleNarc2AddMedSubmit(event)">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">รายการยาเสพติดให้โทษ ป.2</label>
+                        <select id="narc-modal-med-name" class="glass-input w-full p-2 rounded text-xs text-pink-400 font-bold">
+                            <option>Morphine injection 10 mg/ml</option>
+                            <option>Morphine syrup 2 mg/ml (60ml)</option>
+                            <option>MOIR(10)</option>
+                            <option>MST (10)</option>
+                            <option>Kapanol (20)</option>
+                            <option>Fentanyl patch (25mcg/hr)</option>
+                            <option>Fentanyl patch (50mcg/hr)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Indication</label>
+                        <select id="narc-modal-indication" class="glass-input w-full p-2 rounded text-xs">
+                            <option>Palliative care</option>
+                            <option>Symptomatic Management</option>
+                        </select>
+                    </div>
+                    <div><label class="block text-xs text-gray-400 mb-1">ขนาดยาเดี่ยวต่อครั้ง (mg/mcg)</label><input type="number" step="0.01" required id="narc-modal-dose" class="glass-input w-full p-2 rounded text-xs"></div>
+                    <div><label class="block text-xs text-gray-400 mb-1">จำนวนสั่งจ่าย (เช่น 10 แอมพูล / 20 เม็ด)</label><input type="text" required id="narc-modal-qty" class="glass-input w-full p-2 rounded text-xs" placeholder="10 แอมพูล"></div>
+                    <div class="md:col-span-2"><label class="block text-xs text-gray-400 mb-1">วิธีการใช้ยาโดยละเอียด (Signature)</label><input type="text" required id="narc-modal-sig" class="glass-input w-full p-2 rounded text-xs" placeholder="เช่น ทานครั้งละ 1 ช้อนชา ทุกๆ 4 ชั่วโมง"></div>
+                </div>
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="closeAddNarc2MedModal()" class="px-4 py-2 rounded-lg bg-white/5 text-gray-400 hover:text-white transition text-xs">ยกเลิก</button>
+                    <button type="submit" class="px-4 py-2 rounded-lg bg-pink-500 text-white font-bold hover:bg-pink-400 transition text-xs">บันทึกเพิ่มลงใบเบิก</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for Adding Medication to Syringe Driver or Other -->
+    <div id="syr-add-med-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden no-print">
+        <div class="glass-panel p-6 max-w-lg w-full m-4 border border-starlight-cyan/40 bg-space-950">
+            <h3 class="text-xl font-bold text-starlight-cyan mb-4" id="syr-modal-title"><i class="fa-solid fa-plus-circle mr-2"></i> เพิ่มรายการยา</h3>
+            <form onsubmit="handleSyrAddMedSubmit(event)">
+                <input type="hidden" id="syr-modal-type" value="">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-xs text-gray-400 mb-1">ชื่อรายการยา</label>
+                        <!-- Combobox style behavior: select or type -->
+                        <div class="flex flex-col gap-2">
+                            <select id="syr-modal-med-select" onchange="document.getElementById('syr-modal-med-name').value = this.value" class="glass-input w-full p-2 rounded text-sm text-starlight-cyan font-bold">
+                                <option value="">-- เลือกจากรายการที่พบบ่อย --</option>
+                                <option value="Morphine injection (10 mg/ml)">Morphine injection (10 mg/ml)</option>
+                                <option value="Buscopan (20mg/ml)">Buscopan (20mg/ml)</option>
+                                <option value="Midazolam (5mg/ml)">Midazolam (5mg/ml)</option>
+                                <option value="Metoclopramide (10mg/2ml)">Metoclopramide (10mg/2ml)</option>
+                                <option value="Haloperidol (5mg/ml)">Haloperidol (5mg/ml)</option>
+                            </select>
+                            <input type="text" required id="syr-modal-med-name" class="glass-input w-full p-2 rounded text-sm" placeholder="หรือพิมพ์ชื่อยาที่ต้องการ...">
+                        </div>
+                    </div>
+                    <div><label class="block text-xs text-gray-400 mb-1">ขนาดยา / ปริมาณ</label><input type="text" required id="syr-modal-dose" class="glass-input w-full p-2 rounded text-sm" placeholder="เช่น 10 mg (1 amp)"></div>
+                    <div><label class="block text-xs text-gray-400 mb-1">จำนวนจ่าย (Qty)</label><input type="text" required id="syr-modal-qty" class="glass-input w-full p-2 rounded text-sm" placeholder="เช่น 10 amp"></div>
+                    <div class="md:col-span-2" id="syr-modal-sig-container"><label class="block text-xs text-gray-400 mb-1">วิธีบริหารยา (Sig.)</label><input type="text" id="syr-modal-sig" class="glass-input w-full p-2 rounded text-sm" placeholder="เช่น SC prn q 4 hr (จำเป็นสำหรับยาอื่นๆ)"></div>
+                </div>
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="closeSyrAddMedModal()" class="px-4 py-2 rounded-lg bg-white/5 text-gray-400 hover:text-white transition text-xs">ยกเลิก</button>
+                    <button type="submit" class="px-4 py-2 rounded-lg bg-starlight-cyan text-space-950 font-bold hover:bg-white transition text-xs">บันทึกเพิ่มรายการ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Printable Official Documents (PDF Render Source) -->
+    <div id="print-container"></div>
+
+    <div id="toast">ข้อความแจ้งเตือนระบบ</div>
+
+    <script>
+        const SUPABASE_URL = "https://hompmaasqrbuwxejswun.supabase.co"; 
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhvbXBtYWFzcXJidXd4ZWpzd3VuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMjY5NTAsImV4cCI6MjA5NTkwMjk1MH0.QvnuDBUU5g_EZtE3Vkc_1hc7xXmZlvrIR0eFRGqpaQM";
+        
+        let supabaseClient = null;
+        let isDbConnected = false;
+
+        let patients = [];
+        let regUdxList = [];
+        
+        let tempNarc2Meds = []; // drugs dynamically in Narcotic 2 printing form
+        let tempPRNRecords = []; // Temporary PRN administration records
+        
+        // Syringe Driver specific arrays
+        let tempSyringeMeds = [];
+        let tempOtherMeds = [];
+
+        let diseaseChartInstance = null;
+        let pcuChartInstance = null;
+
+        // Fallback Database
+        let fallbackPatients = [
+            {
+                id: 1, name: 'นาย สมหมาย ใจดี', age: 68, cid: '3120199023812', hn: '1234567',
+                right_care: 'UC ผู้สูงอายุ', right_care_other: '',
+                address: { no: '12/4', moo: '3', road: 'ทับคล้อร่วมใจ', sub: 'ทับคล้อ', dist: 'ทับคล้อ', prov: 'พิจิตร', zip: '66230' },
+                pcu: 'PCU ทับคล้อ', pcu_other: '', disease: 'Cancer', disease_other: '',
+                diagnosis: 'CA Colon Stage IV with Lung metastasis',
+                udx: ['DM Type 2', 'Hypertension'], status: 'Active',
+                pps: 40, isPinned: true, pinnedReason: 'ใกล้เสียชีวิต (Active Dying)',
+                insuranceSent: true, acp: 'No CPR, No Tube, Comfort Care',
+                morphine_records: [
+                    { datetime: '2026-06-02T08:00', type: 'Breakthrough dose', med: 'Morphine syrup 2 mg/ml', dose: 2.5, qty: '1 amp', route: 'Subcutaneous injection', pain_before: 6, pain_after: 2 }
+                ]
+            }
+        ];
+
+        async function initSupabase() {
+            try {
+                if (typeof supabase === 'undefined') {
+                    throw new Error("Supabase library not loaded.");
+                }
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                const { data, error } = await supabaseClient.from('pallipatients').select('id').limit(1);
+                if (error) throw error;
+                
+                isDbConnected = true;
+                updateDbBadge(true);
+            } catch (err) {
+                console.error("Supabase connection failed:", err.message);
+                isDbConnected = false;
+                updateDbBadge(false, err.message);
+            }
+        }
+
+        function updateDbBadge(online, errMessage = "") {
+            const dot = document.getElementById('db-status-dot');
+            const txt = document.getElementById('db-status-text');
+            if (online) {
+                if(dot) dot.className = "w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_8px_#4ade80]";
+                if(txt) { txt.innerText = "Supabase: Connected"; txt.className = "text-green-400 font-semibold"; }
+            } else {
+                if(dot) dot.className = "w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_#f87171] animate-pulse";
+                if(txt) { txt.innerText = `Offline (${errMessage.substring(0, 15)})`; txt.className = "text-red-400 font-semibold"; }
+            }
+        }
+
+        async function fetchPatients() {
+            if (isDbConnected && supabaseClient) {
+                try {
+                    const { data, error } = await supabaseClient.from('pallipatients').select('*').order('id', { ascending: true });
+                    if (error) throw error;
+                    patients = data || [];
+                } catch (err) {
+                    patients = [...fallbackPatients];
+                }
+            } else {
+                patients = [...fallbackPatients];
+            }
+            // Mapping fields cleanly
+            patients = patients.map(p => ({
+                id: p.id, name: p.name, age: p.age, cid: p.cid || '', hn: p.hn,
+                right: p.right_care || 'UC ผู้สูงอายุ', rightOther: p.right_care_other || '',
+                address: p.address || { no: '', moo: '', road: '', sub: '', dist: 'ทับคล้อ', prov: 'พิจิตร', zip: '66230' },
+                pcu: p.pcu || 'PCU ทับคล้อ', pcuOther: p.pcu_other || '',
+                disease: p.disease || 'Cancer', diseaseOther: p.disease_other || '',
+                pps: p.pps || 100, diagnosis: p.diagnosis || '', udx: p.udx || [],
+                status: p.status || 'Active', 
+                isPinned: p.is_pinned !== undefined ? p.is_pinned : (p.isPinned || false), 
+                pinnedReason: p.pinned_reason || p.pinnedReason || '',
+                insuranceSent: p.insurance_sent || p.insuranceSent || false,
+                acp: p.acp || '', morphineRecords: p.morphine_records || []
+            }));
+        }
+
+        window.onload = async function() {
+            initSpaceBackground();
+            await initSupabase();
+            await fetchPatients();
+            document.getElementById('syr-date').value = new Date().toISOString().split('T')[0];
+            updateDashboard();
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById("toast");
+            toast.innerText = message;
+            toast.className = "show";
+            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 4500);
+        }
+
+        async function switchView(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            const sec = document.getElementById(viewId);
+            if(sec) sec.classList.add('active');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-white/5', 'text-starlight-cyan');
+                btn.classList.add('text-gray-400');
+            });
+
+            const activeBtn = document.getElementById(`nav-${viewId}`);
+            if(activeBtn) {
+                activeBtn.classList.add('bg-white/5', 'text-starlight-cyan');
+                activeBtn.classList.remove('text-gray-400');
+            }
+
+            await fetchPatients();
+
+            if(viewId === 'dashboard') updateDashboard();
+            else if(viewId === 'document-center') {
+                populatePatientDocSelects();
+                renderNarc2MedsList();
+                renderPRNMedTable();
+            }
+        }
+
+        function updateDashboard() {
+            const total = patients.length;
+            const pinned = patients.filter(p => p.isPinned).length;
+            const active = patients.filter(p => p.status === 'Active' || p.status === 'Admit').length;
+            
+            // Percentage mock (Since ward visits removed)
+            const visitCompletionPercentage = total > 0 ? 85 : 0;
+
+            document.getElementById('kpi-total').innerText = total;
+            document.getElementById('kpi-pinned').innerText = pinned;
+            document.getElementById('kpi-active').innerText = active;
+            document.getElementById('kpi-insurance').innerText = `${visitCompletionPercentage}%`;
+
+            const diseases = {};
+            const pcus = {};
+            patients.forEach(p => {
+                diseases[p.disease] = (diseases[p.disease] || 0) + 1;
+                pcus[p.pcu] = (pcus[p.pcu] || 0) + 1;
+            });
+
+            if(diseaseChartInstance) diseaseChartInstance.destroy();
+            const ctxDisease = document.getElementById('diseaseChart');
+            if(ctxDisease) {
+                diseaseChartInstance = new Chart(ctxDisease.getContext('2d'), {
+                    type: 'doughnut',
+                    data: { labels: Object.keys(diseases), datasets: [{ data: Object.values(diseases), backgroundColor: ['#66FCF1', '#45A29E', '#F4D03F', '#FF4C4C', '#A855F7', '#E2E8F0'], borderWidth: 0 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+                });
+            }
+
+            if(pcuChartInstance) pcuChartInstance.destroy();
+            const ctxPcu = document.getElementById('pcuChart');
+            if(ctxPcu) {
+                pcuChartInstance = new Chart(ctxPcu.getContext('2d'), {
+                    type: 'bar',
+                    data: { labels: Object.keys(pcus), datasets: [{ label: 'จำนวนผู้ป่วย', data: Object.values(pcus), backgroundColor: '#45A29E', borderColor: '#66FCF1', borderWidth: 1 }] },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+                });
+            }
+        }
+
+        // ==========================================
+        //  DOCUMENT TAB HELPERS
+        // ==========================================
+        function switchDocTab(tabName) {
+            document.querySelectorAll('.doc-sub-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.doc-tab-btn').forEach(el => {
+                el.classList.remove('text-starlight-cyan', 'border-starlight-cyan', 'bg-white/5');
+                el.classList.add('text-gray-400', 'border-transparent');
+            });
+            const content = document.getElementById(`doc-sub-${tabName}`);
+            if(content) content.classList.remove('hidden');
+            const activeBtn = document.getElementById(`btn-doc-${tabName}`);
+            if(activeBtn) {
+                activeBtn.classList.remove('text-gray-400', 'border-transparent');
+                activeBtn.classList.add('text-starlight-cyan', 'border-starlight-cyan', 'bg-white/5');
+            }
+        }
+
+        function populatePatientDocSelects() {
+            const selectNarc = document.getElementById('narc2-select-patient');
+            const selectPRN = document.getElementById('prn-select-patient');
+            const selectSyr = document.getElementById('syr-select-patient');
+            
+            let optionsHTML = '<option value="">-- กรุณาเลือกคนไข้ --</option>';
+            patients.forEach(p => {
+                optionsHTML += `<option value="${p.id}">${p.name} (HN: ${p.hn})</option>`;
+            });
+
+            if(selectNarc) selectNarc.innerHTML = optionsHTML;
+            if(selectPRN) selectPRN.innerHTML = optionsHTML;
+            if(selectSyr) selectSyr.innerHTML = optionsHTML;
+        }
+
+        // ==========================================
+        //  SYRINGE DRIVER SYSTEM LOGIC
+        // ==========================================
+        function autoFillSyrPatient() {
+            const val = document.getElementById('syr-select-patient').value;
+            if(!val) {
+                document.getElementById('syr-pat-hn').value = '';
+                return;
+            }
+            const p = patients.find(pat => pat.id == val);
+            if(p) {
+                document.getElementById('syr-pat-hn').value = p.hn;
+            }
+        }
+
+        function openSyrAddMedModal(type) {
+            document.getElementById('syr-add-med-modal').classList.remove('hidden');
+            document.getElementById('syr-modal-type').value = type;
+            document.getElementById('syr-modal-med-select').value = "";
+            document.getElementById('syr-modal-med-name').value = "";
+            document.getElementById('syr-modal-dose').value = "";
+            document.getElementById('syr-modal-qty').value = "";
+            document.getElementById('syr-modal-sig').value = "";
+            
+            if (type === 'syringe') {
+                document.getElementById('syr-modal-title').innerHTML = '<i class="fa-solid fa-syringe mr-2"></i> เพิ่มยาเข้าเครื่อง Syringe Driver';
+                document.getElementById('syr-modal-sig-container').classList.add('hidden'); // ซ่อน Sig เพราะสูตรรวมอยู่ใน Summary แล้ว
+            } else {
+                document.getElementById('syr-modal-title').innerHTML = '<i class="fa-solid fa-pills mr-2"></i> เพิ่มรายการยาอื่นๆ / PRN';
+                document.getElementById('syr-modal-sig-container').classList.remove('hidden'); // แสดง Sig สำหรับยาอื่นๆ
+            }
+        }
+
+        function closeSyrAddMedModal() {
+            document.getElementById('syr-add-med-modal').classList.add('hidden');
+        }
+
+        function handleSyrAddMedSubmit(e) {
+            e.preventDefault();
+            const type = document.getElementById('syr-modal-type').value;
+            const med = {
+                name: document.getElementById('syr-modal-med-name').value,
+                dose: document.getElementById('syr-modal-dose').value,
+                qty: document.getElementById('syr-modal-qty').value,
+                sig: document.getElementById('syr-modal-sig').value
+            };
+
+            if (type === 'syringe') {
+                tempSyringeMeds.push(med);
+                renderSyrMedsTable();
+                generateSyringeSummary();
+            } else {
+                tempOtherMeds.push(med);
+                renderSyrOtherMedsTable();
+            }
+            
+            closeSyrAddMedModal();
+            showToast("เพิ่มรายการยาสำเร็จ");
+        }
+
+        function renderSyrMedsTable() {
+            const body = document.getElementById('syr-meds-list-body');
+            body.innerHTML = '';
+            if(tempSyringeMeds.length === 0) {
+                body.innerHTML = `<tr><td colspan="3" class="p-3 text-center text-gray-500">ยังไม่มีรายการยาในเครื่อง</td></tr>`;
+                return;
+            }
+            tempSyringeMeds.forEach((m, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-white/10 hover:bg-white/5';
+                tr.innerHTML = `
+                    <td class="p-2 font-bold text-starlight-cyan">${m.name}</td>
+                    <td class="p-2">${m.dose} (จ่าย ${m.qty})</td>
+                    <td class="p-2 text-center">
+                        <button type="button" onclick="removeSyrMedItem(${idx})" class="text-red-400 hover:underline"><i class="fa-solid fa-trash-can"></i></button>
+                    </td>
+                `;
+                body.appendChild(tr);
+            });
+        }
+
+        function removeSyrMedItem(idx) {
+            tempSyringeMeds.splice(idx, 1);
+            renderSyrMedsTable();
+            generateSyringeSummary();
+        }
+
+        function renderSyrOtherMedsTable() {
+            const body = document.getElementById('syr-other-meds-body');
+            body.innerHTML = '';
+            if(tempOtherMeds.length === 0) {
+                body.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-gray-500">ไม่มีรายการยาอื่นๆ</td></tr>`;
+                return;
+            }
+            tempOtherMeds.forEach((m, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-white/10 hover:bg-white/5';
+                tr.innerHTML = `
+                    <td class="p-2 font-bold text-white">${m.name}</td>
+                    <td class="p-2">${m.dose} (จ่าย ${m.qty})</td>
+                    <td class="p-2 text-starlight-gold">${m.sig || '-'}</td>
+                    <td class="p-2 text-center">
+                        <button type="button" onclick="removeOtherMedItem(${idx})" class="text-red-400 hover:underline"><i class="fa-solid fa-trash-can"></i></button>
+                    </td>
+                `;
+                body.appendChild(tr);
+            });
+        }
+
+        function removeOtherMedItem(idx) {
+            tempOtherMeds.splice(idx, 1);
+            renderSyrOtherMedsTable();
+        }
+
+        function generateSyringeSummary() {
+            let parts = [];
+            tempSyringeMeds.forEach(m => {
+                parts.push(`${m.name} ${m.dose}`);
+            });
+            
+            let baseString = parts.join(' + ');
+            const nss = document.getElementById('syr-nss').value;
+            const drip = document.getElementById('syr-drip').value;
+            const device = document.getElementById('syr-device').value;
+            
+            let finalString = "";
+            if(baseString) {
+                finalString = `${baseString} + NSS up to ${nss} + SC drip in ${drip} via ${device}`;
+            }
+            
+            document.getElementById('syr-summary-output').value = finalString;
+        }
+
+        function printSyringeDriverForm() {
+            const patId = document.getElementById('syr-select-patient').value;
+            if(!patId) { showToast("โปรดเลือกคนไข้ก่อนพิมพ์เอกสาร"); return; }
+            
+            const p = patients.find(pat => pat.id == patId);
+            const dateStr = new Date(document.getElementById('syr-date').value).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+            const summaryString = document.getElementById('syr-summary-output').value;
+
+            if(!summaryString && tempOtherMeds.length === 0) {
+                showToast("โปรดเพิ่มรายการยาเข้าเครื่อง หรือยาอื่นๆ ก่อนพิมพ์เอกสาร"); return;
+            }
+
+            let syrMedsRows = '';
+            tempSyringeMeds.forEach((m, i) => {
+                syrMedsRows += `<tr>
+                    <td style="padding: 8px; border: 1px solid black;">${i+1}</td>
+                    <td style="padding: 8px; border: 1px solid black;">${m.name}</td>
+                    <td style="padding: 8px; border: 1px solid black; text-align: center;">${m.dose}</td>
+                    <td style="padding: 8px; border: 1px solid black; text-align: center;">${m.qty}</td>
+                </tr>`;
+            });
+
+            let otherMedsRows = '';
+            tempOtherMeds.forEach((m, i) => {
+                otherMedsRows += `<tr>
+                    <td style="padding: 8px; border: 1px solid black;">${i+1}</td>
+                    <td style="padding: 8px; border: 1px solid black;">${m.name}</td>
+                    <td style="padding: 8px; border: 1px solid black; text-align: center;">${m.dose}</td>
+                    <td style="padding: 8px; border: 1px solid black; text-align: center;">${m.qty}</td>
+                    <td style="padding: 8px; border: 1px solid black;">${m.sig}</td>
+                </tr>`;
+            });
+
+            const printContainer = document.getElementById('print-container');
+            printContainer.innerHTML = `
+                <div class="print-card" style="font-family: 'Sarabun', 'Kanit', sans-serif; color: black; line-height: 1.6;">
+                    <div style="text-align: center; font-size: 16pt; font-weight: bold; margin-bottom: 20px;">
+                        แบบฟอร์มสั่งใช้และติดตามเครื่องบริหารยาต่อเนื่อง (Syringe Driver / Surefuser)<br>
+                        หอผู้ป่วยประคับประคอง โรงพยาบาลทับคล้อ
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                        <div>
+                            <b>ชื่อ-สกุล:</b> ${p.name} <br>
+                            <b>อายุ:</b> ${p.age} ปี &nbsp;&nbsp;&nbsp; <b>HN:</b> ${p.hn}
+                        </div>
+                        <div style="text-align: right;">
+                            <b>วันที่สั่งใช้:</b> ${dateStr}
+                        </div>
+                    </div>
+                    
+                    <div style="border: 2px solid black; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9;">
+                        <h3 style="font-size: 12pt; font-weight: bold; margin-bottom: 10px; text-decoration: underline;">สรุปสูตรยาในเครื่อง (Syringe Driver Formula)</h3>
+                        <p style="font-size: 11pt; font-weight: bold; line-height: 1.8;">${summaryString || 'ไม่มีการผสมยาในเครื่อง'}</p>
+                    </div>
+
+                    ${tempSyringeMeds.length > 0 ? `
+                        <h3 style="font-size: 11pt; font-weight: bold; margin-bottom: 5px;">รายการยาที่เบิกเข้าเครื่อง</h3>
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 10pt;">
+                            <tr style="background-color: #f2f2f2;">
+                                <th style="padding: 8px; border: 1px solid black; width: 5%;">ลำดับ</th>
+                                <th style="padding: 8px; border: 1px solid black; width: 45%;">ชื่อรายการยา</th>
+                                <th style="padding: 8px; border: 1px solid black; text-align: center;">ขนาดยา (Dose)</th>
+                                <th style="padding: 8px; border: 1px solid black; text-align: center;">จำนวนเบิกจ่าย</th>
+                            </tr>
+                            ${syrMedsRows}
+                        </table>
+                    ` : ''}
+
+                    ${tempOtherMeds.length > 0 ? `
+                        <h3 style="font-size: 11pt; font-weight: bold; margin-bottom: 5px; margin-top: 20px;">รายการยาอื่นๆ (Other / PRN Medications)</h3>
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 10pt;">
+                            <tr style="background-color: #f2f2f2;">
+                                <th style="padding: 8px; border: 1px solid black; width: 5%;">ลำดับ</th>
+                                <th style="padding: 8px; border: 1px solid black; width: 35%;">ชื่อรายการยา</th>
+                                <th style="padding: 8px; border: 1px solid black; text-align: center; width: 15%;">ขนาดยา</th>
+                                <th style="padding: 8px; border: 1px solid black; text-align: center; width: 15%;">จำนวน</th>
+                                <th style="padding: 8px; border: 1px solid black;">วิธีบริหาร (Sig.)</th>
+                            </tr>
+                            ${otherMedsRows}
+                        </table>
+                    ` : ''}
+
+                    <div style="display: flex; justify-content: space-between; margin-top: 50px;">
+                        <div style="text-align: center; width: 45%;">
+                            ลงชื่อ.............................................................. พยาบาลผู้เตรียมยา<br>
+                            (....................................................................)<br>
+                            วันที่ ........./........./......... เวลา ............ น.
+                        </div>
+                        <div style="text-align: center; width: 45%;">
+                            ลงชื่อ.............................................................. แพทย์ผู้สั่งการรักษา<br>
+                            ( นพ.ยตนา มาพันธ์สุ )<br>
+                            เลขที่ใบอนุญาตประกอบวิชาชีพเวชกรรม: ว. 67650
+                        </div>
+                    </div>
+                </div>
+            `;
+            window.print();
+        }
+
+        // ==========================================
+        //  PRN & NARCOTIC 2 SHEET HELPERS
+        // ==========================================
+        function autoFillPRNPatient() {
+            const val = document.getElementById('prn-select-patient').value;
+            if(!val) return;
+            const p = patients.find(pat => pat.id == val);
+            if(p) {
+                document.getElementById('prn-pat-name').value = p.name;
+                document.getElementById('prn-pat-hn').value = p.hn;
+                document.getElementById('prn-pat-cid').value = p.cid || '';
+                document.getElementById('prn-pat-age').value = p.age;
+                let addrStr = p.address ? `${p.address.no || ''} ม.${p.address.moo || ''} ถ.${p.address.road || '-'} ต.${p.address.sub || ''} อ.${p.address.dist || 'ทับคล้อ'} จ.${p.address.prov || 'พิจิตร'} ${p.address.zip || '66230'}` : '-';
+                document.getElementById('prn-pat-address').value = addrStr;
+                tempPRNRecords = (p.morphineRecords || []).filter(r => r.type && r.type.includes("Breakthrough")).map(r => ({
+                    date: r.datetime.split('T')[0], time: r.datetime.split('T')[1] || '08:00',
+                    pain_before: r.pain_before, dose: r.dose, pain_after: r.pain_after
+                }));
+                renderPRNMedTable();
+            }
+        }
+
+        function renderPRNMedTable() {
+            const body = document.getElementById('prn-med-list-body');
+            body.innerHTML = '';
+            if(tempPRNRecords.length === 0) {
+                body.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-gray-500">ไม่มีข้อมูลบันทึกในตารางเอกสาร กดปุ่มเพิ่มแถวเพื่อตั้งค่าด้วยตนเอง</td></tr>`; return;
+            }
+            tempPRNRecords.forEach((item, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-white/5 hover:bg-space-950/20';
+                tr.innerHTML = `
+                    <td class="p-2"><input type="date" value="${item.date}" class="glass-input p-1 rounded text-xs w-28"></td>
+                    <td class="p-2"><input type="time" value="${item.time}" class="glass-input p-1 rounded text-xs w-20"></td>
+                    <td class="p-2 text-center"><input type="number" value="${item.pain_before}" class="glass-input p-1 rounded text-xs w-16 text-center text-red-400 font-bold"></td>
+                    <td class="p-2 text-center"><input type="number" step="0.01" value="${item.dose}" class="glass-input p-1 rounded text-xs w-20 text-center text-white font-bold"></td>
+                    <td class="p-2 text-center"><input type="number" value="${item.pain_after}" class="glass-input p-1 rounded text-xs w-16 text-center text-green-400 font-bold"></td>
+                    <td class="p-2 text-center"><button type="button" onclick="deletePRNRow(${idx})" class="text-red-400 hover:underline"><i class="fa-solid fa-trash-can"></i></button></td>
+                `;
+                body.appendChild(tr);
+            });
+        }
+        function addPRNTableRow() { tempPRNRecords.push({ date: new Date().toISOString().split('T')[0], time: "08:00", pain_before: 0, dose: 2.5, pain_after: 0 }); renderPRNMedTable(); }
+        function deletePRNRow(idx) { tempPRNRecords.splice(idx, 1); renderPRNMedTable(); }
+
+        function printMorphinePRNDoc(withData) {
+            // Re-used exact print logic from original...
+            const name = document.getElementById('prn-pat-name').value || '...................................................';
+            const hn = document.getElementById('prn-pat-hn').value || '............................';
+            const age = document.getElementById('prn-pat-age').value || '.......';
+            const cid = document.getElementById('prn-pat-cid').value || '...................................................';
+            const address = document.getElementById('prn-pat-address').value || '................................................................................';
+            const medName = document.getElementById('prn-med-name').value;
+            const medDose = document.getElementById('prn-med-dose').value;
+            const medSig = document.getElementById('prn-med-sig').value;
+
+            let rowCount = withData ? tempPRNRecords.length : 12; 
+            let trs = '';
+            for (let i = 0; i < rowCount; i++) {
+                const item = withData ? tempPRNRecords[i] : null;
+                trs += `
+                    <tr style="border-bottom: 1px solid black;">
+                        <td style="padding: 10px; border-right: 1px solid black; text-align: center;">${item ? item.date : '&nbsp;'}</td>
+                        <td style="padding: 10px; border-right: 1px solid black; text-align: center;">${item ? item.time : ''}</td>
+                        <td style="padding: 10px; border-right: 1px solid black; text-align: center;">${item ? item.pain_before : ''}</td>
+                        <td style="padding: 10px; border-right: 1px solid black; text-align: center; font-weight: bold;">${item ? item.dose + ' mg' : ''}</td>
+                        <td style="padding: 10px; border-right: 1px solid black; text-align: center;">${item ? item.pain_after : ''}</td>
+                        <td style="padding: 10px; text-align: center;">${item ? 'นพ.ยตนา' : ''}</td>
+                    </tr>
+                `;
+            }
+
+            document.getElementById('print-container').innerHTML = `
+                <div class="print-card" style="font-family: 'Sarabun', 'Kanit', sans-serif; color: black; line-height: 1.6;">
+                    <div style="text-align: center; font-size: 14pt; font-weight: bold; margin-bottom: 15px;">
+                        ใบบันทึกการใช้และบริหารยา Morphine PRN ตามอาการ<br>โรงพยาบาลทับคล้อ จังหวัดพิจิตร
+                    </div>
+                    <div style="border: 1px solid black; padding: 15px; border-radius: 6px; margin-bottom: 20px; font-size: 10pt;">
+                        <b>ชื่อผู้ป่วย:</b> ${name} &nbsp;&nbsp;&nbsp;&nbsp; <b>HN:</b> ${hn} &nbsp;&nbsp;&nbsp;&nbsp; <b>อายุ:</b> ${age} ปี<br>
+                        <b>ที่อยู่จัดส่ง/รับบริการ:</b> ${address}<br>
+                        <hr style="border: 0.5px dashed black; margin: 8px 0;">
+                        <b>รายการยาระงับปวดตั้งต้น:</b> <span style="text-decoration: underline; font-weight: bold;">${medName}</span> &nbsp;&nbsp;&nbsp;&nbsp; 
+                        <b>ขนาดยาเดี่ยวที่กำหนด:</b> ${medDose} &nbsp;&nbsp;&nbsp;&nbsp; <br>
+                        <b>ความประสงค์/วิธีการใช้ยา (Sig):</b> ${medSig}
+                    </div>
+                    <table style="width: 100%; border-collapse: collapse; border: 1px solid black; font-size: 10pt; margin-bottom: 30px;">
+                        <thead>
+                            <tr style="background-color: #f2f2f2; border-bottom: 1px solid black;">
+                                <th style="padding: 10px; border-right: 1px solid black; text-align: center; width: 15%;">วันที่</th>
+                                <th style="padding: 10px; border-right: 1px solid black; text-align: center; width: 10%;">เวลา</th>
+                                <th style="padding: 10px; border-right: 1px solid black; text-align: center; width: 22%;">อาการก่อนยา (0-10)</th>
+                                <th style="padding: 10px; border-right: 1px solid black; text-align: center; width: 18%;">ขนาดเดี่ยวที่ระงับ (mg)</th>
+                                <th style="padding: 10px; border-right: 1px solid black; text-align: center; width: 22%;">อาการหลังประเมิน (0-10)</th>
+                                <th style="padding: 10px; text-align: center; width: 13%;">ผู้บันทึก</th>
+                            </tr>
+                        </thead>
+                        <tbody>${trs}</tbody>
+                    </table>
+                </div>
+            `;
+            window.print();
+        }
+
+        // Narcotic 2 Forms Logic
+        function autoFillNarcoticPatient() {
+            const val = document.getElementById('narc2-select-patient').value;
+            if(!val) return;
+            const p = patients.find(pat => pat.id == val);
+            if(p) {
+                document.getElementById('narc2-pat-hn').value = p.hn;
+                document.getElementById('narc2-pat-cid').value = p.cid || '';
+                document.getElementById('narc2-pat-name').value = p.name;
+                let addrStr = p.address ? `${p.address.no || ''} ม.${p.address.moo || ''} ถ.${p.address.road || '-'} ต.${p.address.sub || ''} อ.${p.address.dist || 'ทับคล้อ'} จ.${p.address.prov || 'พิจิตร'} ${p.address.zip || '66230'}` : '-';
+                document.getElementById('narc2-pat-address').value = addrStr;
+            }
+        }
+        function openAddNarc2MedModal() { document.getElementById('narc2-add-med-modal').classList.remove('hidden'); }
+        function closeAddNarc2MedModal() { document.getElementById('narc2-add-med-modal').classList.add('hidden'); }
+
+        function handleNarc2AddMedSubmit(e) {
+            e.preventDefault();
+            tempNarc2Meds.push({
+                name: document.getElementById('narc-modal-med-name').value,
+                indication: document.getElementById('narc-modal-indication').value,
+                dose: document.getElementById('narc-modal-dose').value,
+                qty: document.getElementById('narc-modal-qty').value,
+                sig: document.getElementById('narc-modal-sig').value
+            });
+            closeAddNarc2MedModal(); renderNarc2MedsList();
+        }
+
+        function renderNarc2MedsList() {
+            const body = document.getElementById('narc2-meds-list-body');
+            body.innerHTML = '';
+            if(tempNarc2Meds.length === 0) {
+                body.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-gray-500">กรุณากดเพิ่มรายการยาอย่างน้อย 1 รายการเพื่อพิมพ์ออกเอกสาร</td></tr>`; return;
+            }
+            tempNarc2Meds.forEach((m, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-white/5 hover:bg-space-950/20';
+                tr.innerHTML = `
+                    <td class="p-2 font-bold text-white">${m.name}</td>
+                    <td class="p-2">${m.indication}</td>
+                    <td class="p-2 text-starlight-gold">${m.dose} mg/mcg</td>
+                    <td class="p-2 truncate max-w-[150px]">${m.sig}</td>
+                    <td class="p-2 text-center text-green-400 font-bold">${m.qty}</td>
+                    <td class="p-2 text-center"><button type="button" onclick="tempNarc2Meds.splice(${idx}, 1); renderNarc2MedsList();" class="text-red-400 hover:underline"><i class="fa-solid fa-trash-can"></i></button></td>
+                `;
+                body.appendChild(tr);
+            });
+        }
+
+        function printNarcotic2Form() {
+            if(!document.getElementById('narc2-select-patient').value || tempNarc2Meds.length === 0) { showToast("โปรดเลือกคนไข้และเพิ่มยาลงแบบฟอร์ม"); return; }
+            
+            const rawDate = document.getElementById('narc2-date').value;
+            const formattedDate = rawDate ? new Date(rawDate).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' }) : '..............................';
+
+            let medsRows = '';
+            tempNarc2Meds.forEach((m, idx) => {
+                medsRows += `<div style="margin-top: 15px; padding-bottom: 10px; border-bottom: 1px dashed #ccc;">
+                    <b>รายการสั่งใช้ยาเสพติดกลุ่มที่ 2 (รายการที่ ${idx+1}):</b> <span style="font-weight: bold; text-decoration: underline;">${m.name}</span><br>
+                    <b>ขนาดยาเดี่ยว:</b> ${m.dose} mg/mcg &nbsp;&nbsp;&nbsp;&nbsp; <b>ข้อบ่งชี้:</b> ${m.indication}<br>
+                    <b>วิธีใช้:</b> ${m.sig}<br>
+                    <b>จำนวนสุทธิที่ขอเบิกจ่าย:</b> <span style="font-weight: bold;">${m.qty}</span>
+                </div>`;
+            });
+
+            document.getElementById('print-container').innerHTML = `
+                <div class="print-card" style="font-family: 'Sarabun', 'Kanit', sans-serif; color: black; line-height: 1.8;">
+                    <div style="text-align: center; font-size: 16pt; font-weight: bold; margin-bottom: 20px;">ใบสั่ง/ใบขออนุมัติสั่งใช้ยาเสพติดให้โทษประเภทที่ 2 <br>โรงพยาบาลทับคล้อ</div>
+                    <div style="text-align: right; margin-bottom: 20px;"><b>วันที่:</b> ${formattedDate}</div>
+                    <div style="margin-bottom: 20px; border-bottom: 1px solid black; padding-bottom: 15px;">
+                        <h3 style="font-size: 12pt; font-weight: bold; margin-bottom: 10px;">1. ข้อมูลผู้ป่วย</h3>
+                        <b>ชื่อ-นามสกุล:</b> ${document.getElementById('narc2-pat-name').value} &nbsp;&nbsp;&nbsp;&nbsp; <b>HN:</b> ${document.getElementById('narc2-pat-hn').value}<br>
+                        <b>ที่อยู่:</b> ${document.getElementById('narc2-pat-address').value}
+                    </div>
+                    <div style="margin-bottom: 20px; border-bottom: 1px solid black; padding-bottom: 15px;">
+                        <h3 style="font-size: 12pt; font-weight: bold; margin-bottom: 10px;">2. รายการยาเสพติด ป.2 สั่งจ่าย</h3>${medsRows}
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 40px;">
+                        <div style="text-align: center; width: 45%;">
+                            ลงชื่อ.............................................................. แพทย์ผู้สั่งจ่าย<br>
+                            ( ${document.getElementById('narc2-doc-name').value} )<br>เลขที่ใบอนุญาต: ว. ${document.getElementById('narc2-doc-license').value}
+                        </div>
+                        <div style="text-align: center; width: 45%;">
+                            ลงชื่อ.............................................................. ผู้รับยา<br>(....................................................................)<br>ความสัมพันธ์เกี่ยวข้อง: ....................................................
+                        </div>
+                    </div>
+                </div>
+            `;
+            window.print();
+        }
+
+        // ==========================================
+        //  REGISTRATION (Dashboard direct integration)
+        // ==========================================
+        function addRegisterUdxItem() {
+            const input = document.getElementById('reg-udx-input');
+            const list = document.getElementById('reg-udx-list');
+            if(input.value.trim() === '') return;
+            const val = input.value.trim();
+            regUdxList.push(val);
+            const li = document.createElement('li');
+            li.className = 'flex justify-between items-center bg-space-900/50 p-2 rounded text-sm text-starlight-cyan border border-white/5';
+            li.innerHTML = `<span>${val}</span><button type="button" onclick="regUdxList = regUdxList.filter(item => item !== '${val}'); this.closest('li').remove();" class="text-red-400"><i class="fa-solid fa-trash-can"></i></button>`;
+            list.appendChild(li);
+            input.value = '';
+        }
+
+        async function handlePatientRegistrationSubmit(e) {
+            e.preventDefault();
+            
+            const hn = document.getElementById('reg-hn').value;
+            if(patients.some(p => p.hn === hn)) { showToast('HN นี้ถูกใช้ลงทะเบียนแล้วในระบบประคับประคอง'); return; }
+
+            const newPatientObj = {
+                name: document.getElementById('reg-name').value, age: parseInt(document.getElementById('reg-age').value),
+                cid: document.getElementById('reg-cid').value, hn: hn,
+                right_care: document.getElementById('reg-right').value, right_care_other: document.getElementById('reg-right-other').value,
+                address: {
+                    no: document.getElementById('reg-addr-no').value, moo: document.getElementById('reg-addr-moo').value,
+                    road: document.getElementById('reg-addr-road').value, sub: document.getElementById('reg-addr-sub').value,
+                    dist: document.getElementById('reg-addr-dist').value, prov: document.getElementById('reg-addr-prov').value, zip: document.getElementById('reg-addr-zip').value
+                },
+                pcu: document.getElementById('reg-pcu').value, pcu_other: document.getElementById('reg-pcu-other').value,
+                disease: document.getElementById('reg-disease').value, disease_other: document.getElementById('reg-disease-other').value,
+                pps: parseInt(document.getElementById('reg-pps').value), diagnosis: document.getElementById('reg-diagnosis').value,
+                udx: [...regUdxList], status: 'Active', isPinned: false, insuranceSent: document.getElementById('reg-insurance').checked,
+                acp: document.getElementById('reg-acp').value, morphineRecords: []
+            };
+
+            if (isDbConnected && supabaseClient) {
+                try {
+                    const dbPayload = {
+                        name: newPatientObj.name, age: newPatientObj.age, cid: newPatientObj.cid, hn: newPatientObj.hn,
+                        right_care: newPatientObj.right_care, right_care_other: newPatientObj.right_care_other,
+                        address: newPatientObj.address, pcu: newPatientObj.pcu, pcu_other: newPatientObj.pcu_other,
+                        disease: newPatientObj.disease, disease_other: newPatientObj.disease_other, pps: newPatientObj.pps,
+                        diagnosis: newPatientObj.diagnosis, udx: newPatientObj.udx, status: newPatientObj.status,
+                        is_pinned: newPatientObj.isPinned, insurance_sent: newPatientObj.insuranceSent, acp: newPatientObj.acp
+                    };
+
+                    const { error } = await supabaseClient.from('pallipatients').insert([dbPayload]);
+                    if (error) throw error;
+                    showToast('บันทึกข้อมูลผู้ป่วยใหม่ขึ้น Supabase สำเร็จ');
+                } catch (err) { showToast('เกิดข้อผิดพลาดในการลงทะเบียน: ' + err.message); return; }
+            } else {
+                newPatientObj.id = patients.length + 1;
+                patients.push(newPatientObj);
+                showToast('ลงทะเบียนประวัติผู้ป่วยสำเร็จ (ระบบออฟไลน์)');
+            }
+
+            switchView('dashboard');
+        }
+
+        function exportAllToExcel() {
+            const data = [ ["ID", "HN", "ชื่อ-นามสกุล", "อายุ", "เลขบัตร ปชช.", "สิทธิ์การรักษา", "รพ.สต.ที่ดูแล", "กลุ่มโรคประคับประคอง", "Primary Diagnosis", "PPS Score", "ปักหมุด Focus", "เหตุผลปักดาว", "ส่งเรื่องประกันรพ.แล้ว", "เจตจำนงล่วงหน้า", "สถานะเคสล่าสุด"] ];
+            patients.forEach(p => {
+                data.push([
+                    p.id, p.hn, p.name, p.age, p.cid, p.right + (p.rightOther ? ` (${p.rightOther})` : ''),
+                    p.pcu + (p.pcuOther ? ` (${p.pcuOther})` : ''), p.disease + (p.diseaseOther ? ` (${p.diseaseOther})` : ''),
+                    p.diagnosis, p.pps, p.isPinned ? "ใช่" : "ไม่ใช่", p.pinnedReason || '', p.insuranceSent ? "ใช่" : "ไม่ใช่", p.acp, p.status
+                ]);
+            });
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "PalliativeCareDatabase");
+            XLSX.writeFile(wb, "Starlight_Palliative_Database_Tapkhlo.xlsx");
+            showToast('ดาวน์โหลดฐานข้อมูล Excel สำเร็จ');
+        }
+
+        function initSpaceBackground() {
+            const starsContainer = document.getElementById('stars-container');
+            const meteorContainer = document.getElementById('meteor-container');
+            for (let i = 0; i < 180; i++) {
+                let star = document.createElement('div');
+                star.className = 'star';
+                let size = Math.random() * 2.8 + 0.6;
+                star.style.width = size + 'px'; star.style.height = size + 'px';
+                star.style.left = Math.random() * 100 + 'vw'; star.style.top = Math.random() * 100 + 'vh';
+                star.style.animationDuration = (Math.random() * 3.5 + 1.5) + 's'; star.style.animationDelay = Math.random() * 5 + 's';
+                starsContainer.appendChild(star);
+            }
+            function createSlantedMeteor() {
+                let meteor = document.createElement('div');
+                meteor.className = 'meteor';
+                meteor.style.left = (Math.random() * 130 - 30) + 'vw'; meteor.style.top = (Math.random() * -150 - 50) + 'px';
+                meteor.style.animationDuration = (Math.random() * 1.6 + 0.8) + 's'; 
+                meteorContainer.appendChild(meteor);
+                setTimeout(() => { meteor.remove(); }, 3000);
+            }
+            function scheduleNextMeteor() {
+                let batchCount = Math.floor(Math.random() * 2) + 1;
+                for(let i=0; i<batchCount; i++) setTimeout(createSlantedMeteor, Math.random() * 400);
+                setTimeout(scheduleNextMeteor, Math.random() * 1800 + 1200);
+            }
+            scheduleNextMeteor();
+        }
+    </script>
+</body>
+</html>
