@@ -545,7 +545,7 @@
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                 <div>
                     <h2 class="text-3xl font-bold text-white"><i class="fa-solid fa-hand-holding-dollar text-green-400 mr-2"></i> ระบบติดตามและคำนวณเงินเยี่ยมบ้าน</h2>
-                    <p class="text-gray-400">คำนวณและประมวลผลยอดเงินสนับสนุนตามเกณฑ์การเยี่ยมบ้าน Palliative Care รพ.ทับคล้อ</p>
+                    <p class="text-gray-400">คำนวณและประมวลผลยอดเงินสนับสนุนตามเกณฑ์การเยี่ยมบ้าน Palliative Care รพ.ทับคล้อ จากประวัติเยี่ยมจริง</p>
                 </div>
             </div>
 
@@ -742,7 +742,6 @@
                 morphine_records: [
                     { datetime: '2026-06-02T08:00', type: 'Breakthrough dose', med: 'Morphine syrup 2 mg/ml', dose: 2.5, qty: '1 amp', route: 'Subcutaneous injection', pain_before: 6, pain_after: 2 }
                 ],
-                // Add Visit records to show immediately on Finance Dashboard
                 daily_records: [
                     { mode: 'Visit', date: '2026-06-01', visitor: 'รพ.ทับคล้อ' },
                     { mode: 'Visit', date: '2026-06-05', visitor: 'รพ.ทับคล้อ' }
@@ -955,7 +954,7 @@
 
                 paidVisits.forEach(v => {
                     let pcu = p.pcu || 'PCU ทับคล้อ';
-                    let visitor = v.visitor || 'รพ.ทับคล้อ'; // Default is hospital
+                    let visitor = v.visitor || 'รพ.ทับคล้อ'; 
                     let pay = 1000;
                     let hospShare = 0;
                     let subShare = 0;
@@ -1669,16 +1668,10 @@
                 return;
             }
 
-            // Line 1: กลุ่มโรคประคับประคองหลัก และ การวินิจฉัย
             const line1 = `บรรทัดที่ 1: กลุ่มโรคประคับประคองหลัก: ${p.disease} | การวินิจฉัย: ${p.diagnosis || 'ไม่ได้ระบุ'}`;
-            
-            // Line 2: โรคประจำตัว
             const line2 = `บรรทัดที่ 2: โรคประจำตัว: ${p.udx && p.udx.length > 0 ? p.udx.join(', ') : 'ไม่มี'}`;
-            
-            // Line 3: เจตจำนงการรักษาล่วงหน้าล่าสุด
             const line3 = `บรรทัดที่ 3: เจตจำนงการรักษาล่วงหน้าล่าสุด: ${p.acp || 'ยังไม่ได้ระบุ'}`;
 
-            // Line 4: รายละเอียดและเบอร์ติดต่อของญาติ
             let contactsText = 'ไม่มีข้อมูลการติดต่อ';
             if(p.contacts && p.contacts.length > 0) {
                 contactsText = p.contacts.map(c => `${c.name} - โทร. ${c.tel || '-'}`).join(', ');
@@ -1687,7 +1680,6 @@
             }
             const line4 = `บรรทัดที่ 4: รายละเอียดและเบอร์ติดต่อของญาติ: ${contactsText}`;
 
-            // Line 5: บันทึกการใช้ยาล่าสุด
             let morphineText = 'ไม่มีประวัติการใช้ยาแก้ปวดกลุ่มฝิ่น (Opioids)';
             if(p.morphineRecords && p.morphineRecords.length > 0) {
                 const lastRecord = p.morphineRecords[p.morphineRecords.length - 1];
