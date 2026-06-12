@@ -758,7 +758,7 @@
 
     </main>
 
-    <!-- Modal for Adding Medication to Narcotic 2 Form -->
+    <!-- Modal for Adding/Editing Medication on Narcotic 2 Form -->
     <div id="narc2-add-med-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden no-print">
         <div class="glass-panel p-6 max-w-lg w-full m-4 border border-pink-500/40 bg-space-950">
             <h3 class="text-xl font-bold text-pink-400 mb-4"><i class="fa-solid fa-pills mr-2"></i> เพิ่มรายการยาเสพติดประเภทที่ 2</h3>
@@ -845,6 +845,7 @@
         
         let tempNarc2Meds = []; 
         let tempPRNRecords = []; 
+        let editNarc2Index = null; // Track index being edited in Narcotic 2 meds table
         
         let tempSyringeMeds = [];
         let tempOtherMeds = [];
@@ -1810,19 +1811,69 @@
                 renderNarc2MedsList();
             }
         }
-        function openAddNarc2MedModal() { document.getElementById('narc2-add-med-modal').classList.remove('hidden'); }
-        function closeAddNarc2MedModal() { document.getElementById('narc2-add-med-modal').classList.add('hidden'); }
+
+        function openAddNarc2MedModal() { 
+            editNarc2Index = null;
+            document.getElementById('narc-modal-med-name').value = "Morphine injection 10 mg/ml";
+            document.getElementById('narc-modal-indication').value = "Palliative care";
+            document.getElementById('narc-modal-dose').value = "";
+            document.getElementById('narc-modal-qty').value = "";
+            document.getElementById('narc-modal-sig').value = "";
+
+            const titleEl = document.querySelector('#narc2-add-med-modal h3');
+            if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-pills mr-2"></i> เพิ่มรายการยาเสพติดประเภทที่ 2';
+            
+            const submitBtn = document.querySelector('#narc2-add-med-modal button[type="submit"]');
+            if (submitBtn) submitBtn.innerText = 'บันทึกเพิ่มลงใบเบิก';
+
+            document.getElementById('narc2-add-med-modal').classList.remove('hidden'); 
+        }
+
+        function openEditNarc2MedModal(idx) {
+            editNarc2Index = idx;
+            const m = tempNarc2Meds[idx];
+            if(!m) return;
+
+            document.getElementById('narc-modal-med-name').value = m.name;
+            document.getElementById('narc-modal-indication').value = m.indication;
+            document.getElementById('narc-modal-dose').value = m.dose;
+            document.getElementById('narc-modal-qty').value = m.qty;
+            document.getElementById('narc-modal-sig').value = m.sig;
+
+            const titleEl = document.querySelector('#narc2-add-med-modal h3');
+            if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-pen-to-square mr-2"></i> แก้ไขรายการยาเสพติดประเภทที่ 2';
+            
+            const submitBtn = document.querySelector('#narc2-add-med-modal button[type="submit"]');
+            if (submitBtn) submitBtn.innerText = 'บันทึกการแก้ไข';
+
+            document.getElementById('narc2-add-med-modal').classList.remove('hidden');
+        }
+
+        function closeAddNarc2MedModal() { 
+            document.getElementById('narc2-add-med-modal').classList.add('hidden'); 
+            editNarc2Index = null;
+        }
 
         function handleNarc2AddMedSubmit(e) {
             e.preventDefault();
-            tempNarc2Meds.push({
+            const medObj = {
                 name: document.getElementById('narc-modal-med-name').value,
                 indication: document.getElementById('narc-modal-indication').value,
                 dose: document.getElementById('narc-modal-dose').value,
                 qty: document.getElementById('narc-modal-qty').value,
                 sig: document.getElementById('narc-modal-sig').value
-            });
-            closeAddNarc2MedModal(); renderNarc2MedsList();
+            };
+
+            if (editNarc2Index !== null) {
+                tempNarc2Meds[editNarc2Index] = medObj;
+                showToast("แก้ไขข้อมูลรายการยาสำเร็จ");
+            } else {
+                tempNarc2Meds.push(medObj);
+                showToast("เพิ่มรายการยาสำเร็จ");
+            }
+
+            closeAddNarc2MedModal(); 
+            renderNarc2MedsList();
         }
 
         function renderNarc2MedsList() {
@@ -1840,7 +1891,10 @@
                     <td class="p-2 text-starlight-gold">${m.dose} mg/mcg</td>
                     <td class="p-2 truncate max-w-[150px]">${m.sig}</td>
                     <td class="p-2 text-center text-green-400 font-bold">${m.qty}</td>
-                    <td class="p-2 text-center"><button type="button" onclick="tempNarc2Meds.splice(${idx}, 1); renderNarc2MedsList();" class="text-red-400 hover:underline"><i class="fa-solid fa-trash-can"></i></button></td>
+                    <td class="p-2 text-center flex justify-center gap-2">
+                        <button type="button" onclick="openEditNarc2MedModal(${idx})" class="text-starlight-cyan hover:underline" title="แก้ไข"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button type="button" onclick="tempNarc2Meds.splice(${idx}, 1); renderNarc2MedsList();" class="text-red-400 hover:underline" title="ลบ"><i class="fa-solid fa-trash-can"></i></button>
+                    </td>
                 `;
                 body.appendChild(tr);
             });
@@ -2159,37 +2213,155 @@
             renderPharmacistHub();
         }
 
-        // Pharmacist Excel Export Function
+        // Pharmacist Excel Export Function (อัปเกรดแยกรายการยาทีละบรรทัด พร้อมวิธีการใช้ยา และ วันเวลาจ่ายยา)
         function exportPharmacistHubToExcel() {
-            const processed = processPharmacistData();
-            
+            // Read active Filters for precise context matching
+            const startDate = document.getElementById('ph-filter-start').value;
+            const endDate = document.getElementById('ph-filter-end').value;
+            const medType = document.getElementById('ph-filter-med-type').value;
+            const searchKeyword = document.getElementById('ph-filter-search').value.toLowerCase().trim();
+
             const data = [
                 ["ระบบบริการดูแลประคับประคอง รพ.ทับคล้อ (Starlight Palliative Care)"],
-                ["รายงานทะเบียนสรุปการใช้งานสารยาควบคุมกลุ่ม Morphine และยากลุ่มฝิ่นเสพติดประเภทที่ 2 ของเภสัชกร"],
-                ["วันที่จัดทำรายงาน", new Date().toLocaleDateString('th-TH'), "รวมผู้ป่วยที่ได้รับยาทั้งสิ้น", processed.activeCaseCount + " ราย"],
+                ["รายงานทะเบียนสรุปการใช้สารยาควบคุม Morphine และยากลุ่มฝิ่นเสพติดประเภทที่ 2 (แจกแจงแยกรายการละเอียดรายบรรทัด)"],
+                ["วันที่ส่งออกรายงาน", new Date().toLocaleDateString('th-TH'), "", "", "", "", "", "", "", "", "", ""],
                 [""],
-                ["HN", "ชื่อ-นามสกุล", "อายุ", "โรคหลักประคับประคอง", "คำวินิจฉัยโรคอย่างละเอียด (Primary Diagnosis)", "รายการยา Morphine / ป.2", "ช่องทางบริหารยา (Route)", "จำนวนสั่งจ่ายสะสม", "หน่วยบริการผู้รับผิดชอบดูแล"]
+                [
+                    "HN", 
+                    "ชื่อ-นามสกุล", 
+                    "อายุ (ปี)", 
+                    "สิทธิ์การรักษา", 
+                    "กลุ่มโรคประคับประคองหลัก", 
+                    "คำวินิจฉัยโรคอย่างละเอียด (Primary Diagnosis)", 
+                    "วันเวลาจ่ายยา / วันที่สั่งใช้", 
+                    "รายการยา Morphine / ป.2", 
+                    "จำนวนสั่งจ่าย", 
+                    "วิธีการใช้ยาโดยละเอียด (Sig / Formula)", 
+                    "หน่วยบริการรับผิดชอบ (รพ.สต.)", 
+                    "ประเภทแหล่งข้อมูลเวชระเบียน"
+                ]
             ];
 
-            processed.tableData.forEach(row => {
-                data.push([
-                    row.hn,
-                    row.name,
-                    row.age,
-                    row.disease,
-                    row.diagnosis,
-                    row.meds.join(' \n'),
-                    row.route.join(' \n'),
-                    row.qty.join(' \n'),
-                    row.pcu
-                ]);
+            let rowCount = 0;
+
+            patients.forEach(p => {
+                // Apply Search Filter on Patient Base Data
+                if (searchKeyword) {
+                    const patName = p.name.toLowerCase();
+                    const patHn = p.hn.toLowerCase();
+                    const patDiag = (p.diagnosis || '').toLowerCase();
+                    if (!patName.includes(searchKeyword) && !patHn.includes(searchKeyword) && !patDiag.includes(searchKeyword)) {
+                        return; // Skip this patient
+                    }
+                }
+
+                let patientRows = [];
+
+                // 1. Extract Morphine PRN Logs
+                if (p.morphineRecords && p.morphineRecords.length > 0) {
+                    p.morphineRecords.forEach(rec => {
+                        const recDate = rec.datetime ? rec.datetime.substring(0, 10) : '';
+                        if (startDate && recDate < startDate) return;
+                        if (endDate && recDate > endDate) return;
+
+                        const medName = rec.med || 'Morphine syrup/injection';
+                        
+                        // Type filter validation
+                        if (medType !== 'ALL') {
+                            if (medType === 'Syringe') return;
+                            if (!medName.toLowerCase().includes(medType.toLowerCase())) return;
+                        }
+
+                        patientRows.push({
+                            datetime: rec.datetime ? rec.datetime.replace('T', ' ') : '-',
+                            med: medName,
+                            qty: rec.qty || '1 amp/bottle',
+                            sig: `${rec.route || 'SC/Oral'} | ขนาดเดี่ยว: ${rec.dose} mg (ปวดก่อนยา: ${rec.pain_before} -> หลังยา: ${rec.pain_after})`,
+                            source: "PRN Logs (ประวัติระงับปวด)"
+                        });
+                    });
+                }
+
+                // 2. Extract Narcotic 2 Request Plans
+                if (p.narcotic2Plans && p.narcotic2Plans.length > 0) {
+                    p.narcotic2Plans.forEach(plan => {
+                        if (startDate && plan.date < startDate) return;
+                        if (endDate && plan.date > endDate) return;
+
+                        const medName = plan.med_name || 'Morphine';
+
+                        // Type filter validation
+                        if (medType !== 'ALL') {
+                            if (medType === 'Syringe') return;
+                            if (!medName.toLowerCase().includes(medType.toLowerCase())) return;
+                        }
+
+                        patientRows.push({
+                            datetime: plan.date || '-',
+                            med: medName,
+                            qty: plan.qty || '-',
+                            sig: plan.sig || '-',
+                            source: "คำขออนุมัติ ป.2"
+                        });
+                    });
+                }
+
+                // 3. Extract Syringe Driver System Formula Setups
+                if (p.syringeDrivers && p.syringeDrivers.length > 0) {
+                    p.syringeDrivers.forEach(syr => {
+                        if (startDate && syr.date < startDate) return;
+                        if (endDate && syr.date > endDate) return;
+
+                        const medsInside = syr.meds || [];
+                        medsInside.forEach(m => {
+                            const medName = m.name || 'Syringe Medicine';
+
+                            // Type filter validation
+                            if (medType !== 'ALL') {
+                                if (medType !== 'Syringe' && !medName.toLowerCase().includes(medType.toLowerCase())) return;
+                            }
+
+                            patientRows.push({
+                                datetime: syr.date || '-',
+                                med: `[Syringe] ${medName}`,
+                                qty: m.qty || '1 amp',
+                                sig: `ผสมในเครื่องสูตร: ${syr.summary || 'SC continuous drip'}`,
+                                source: "Syringe Driver"
+                            });
+                        });
+                    });
+                }
+
+                // Push compiled flat records to dataset
+                patientRows.forEach(item => {
+                    data.push([
+                        p.hn,
+                        p.name,
+                        p.age,
+                        p.right,
+                        p.disease,
+                        p.diagnosis || 'ไม่ได้ระบุคำวินิจฉัย',
+                        item.datetime,
+                        item.med,
+                        item.qty,
+                        item.sig,
+                        p.pcu,
+                        item.source
+                    ]);
+                    rowCount++;
+                });
             });
+
+            if (rowCount === 0) {
+                showToast("ไม่พบรายการสารยาตรงกับตัวกรองเพื่อส่งออกรายงาน Excel");
+                return;
+            }
 
             const ws = XLSX.utils.aoa_to_sheet(data);
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Pharmacist_Opioids_Report");
-            XLSX.writeFile(wb, "Pharmacist_Morphine_Usage_Report_Tapkhlo.xlsx");
-            showToast('ส่งออกเอกสารรายงานยาเสพติดให้โทษประเภท 2 สำหรับงานเภสัชกรรม (Excel) สำเร็จแล้ว');
+            XLSX.utils.book_append_sheet(wb, ws, "OpioidsFlatReport");
+            XLSX.writeFile(wb, "Tapkhlo_Palliative_Pharmacist_Flat_Morphine_Report.xlsx");
+            showToast(`ดาวน์โหลดรายงานส่งออกยาแจกแจงละเอียดจำนวน ${rowCount} รายการเสร็จสมบูรณ์`);
         }
 
         function printPharmacistReportPDF() {
