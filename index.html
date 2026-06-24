@@ -114,7 +114,6 @@
             <div class="pt-4 pb-1">
                 <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider pl-3">ระบบบริหารและประเมินเงินเบิกจ่าย</p>
             </div>
-            <!-- อัปเดตชื่อเมนูที่นี่ -->
             <button onclick="switchView('visit-finance')" id="nav-visit-finance" class="nav-btn w-full flex items-center p-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all border border-green-500/20">
                 <i class="fa-solid fa-hand-holding-dollar w-6 text-green-400"></i> คำนวณเงิน Palliative service
             </button>
@@ -401,26 +400,31 @@
 
                             <!-- MULTIPLE MEDICATION LIST FOR REQUEST FORM -->
                             <div class="bg-white/5 p-4 rounded-lg border border-white/10 space-y-3">
-                                <div class="flex justify-between items-center">
-                                    <h4 class="text-sm font-bold text-starlight-cyan">รายการยาเสพติด ป.2 ในแผนคำขอเบิก</h4>
-                                    <button type="button" onclick="openAddNarc2MedModal()" class="bg-starlight-cyan text-space-950 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-white transition">
-                                        <i class="fa-solid fa-plus-circle"></i> เพิ่มรายการยาเสพติด
+                                <div class="flex justify-between items-center flex-wrap gap-2">
+                                    <div>
+                                        <h4 class="text-sm font-bold text-starlight-cyan">รายการยาเสพติด ป.2 ทั้งหมดที่เคยสั่ง (แยกตามวันที่สั่งยา)</h4>
+                                        <p class="text-[11px] text-gray-400 mt-0.5">* ติ๊กถูกหน้ากล่องยา เพื่อระบุพิมพ์ใบเบิกยา (ป.2) เฉพาะรายการที่เลือก</p>
+                                    </div>
+                                    <button type="button" onclick="openAddNarc2MedModal()" class="bg-starlight-cyan text-space-950 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-white transition flex items-center gap-1">
+                                        <i class="fa-solid fa-plus-circle text-sm"></i> สั่งยาเสพติด ป.2 เพิ่มเติม
                                     </button>
                                 </div>
                                 <div class="overflow-x-auto">
                                     <table class="w-full text-left text-xs">
                                         <thead>
                                             <tr class="text-gray-400 border-b border-white/10">
+                                                <th class="p-2 text-center w-12">พิมพ์</th>
+                                                <th class="p-2">วันที่สั่งยา</th>
                                                 <th class="p-2">ชื่อยา</th>
                                                 <th class="p-2">Indication</th>
-                                                <th class="p-2">ขนาดยาเดี่ยว</th>
+                                                <th class="p-2 text-center">ขนาดยาเดี่ยว</th>
                                                 <th class="p-2">วิธีบริหาร (Sig.)</th>
-                                                <th class="p-2">จำนวนสั่งจ่าย</th>
+                                                <th class="p-2 text-center">จำนวนสั่งจ่าย</th>
                                                 <th class="p-2 text-center">จัดการ</th>
                                             </tr>
                                         </thead>
                                         <tbody id="narc2-meds-list-body">
-                                            <tr><td colspan="6" class="p-4 text-center text-gray-500">กรุณากดเพิ่มรายการยาอย่างน้อย 1 รายการเพื่อพิมพ์ออกเอกสาร</td></tr>
+                                            <tr><td colspan="8" class="p-4 text-center text-gray-500">กรุณาเลือกคนไข้ด้านบนเพื่อเรียกดูประวัติการจ่ายยาทั้งหมด</td></tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -928,6 +932,10 @@
             <h3 class="text-xl font-bold text-pink-400 mb-4"><i class="fa-solid fa-pills mr-2"></i> เพิ่มรายการยาเสพติดประเภทที่ 2</h3>
             <form onsubmit="handleNarc2AddMedSubmit(event)">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-xs text-gray-400 mb-1">วันที่สั่งยา (Order Date) <span class="text-red-500">*</span></label>
+                        <input type="date" required id="narc-modal-order-date" class="glass-input w-full p-2.5 rounded text-sm text-starlight-cyan font-bold">
+                    </div>
                     <div>
                         <label class="block text-xs text-gray-400 mb-1">รายการยาเสพติดให้โทษ ป.2</label>
                         <select id="narc-modal-med-name" class="glass-input w-full p-2 rounded text-xs text-pink-400 font-bold">
@@ -1017,7 +1025,6 @@
         let finMonthlyChartInstance = null;
         let finSubdistrictChartInstance = null;
 
-        // Mock Database with mixed Visit, OPD and Death records for Offline Fallback testing
         let fallbackPatients = [
             {
                 id: 1, name: 'นาย สมหมาย ใจดี', age: 68, cid: '3120199023812', hn: '1234567',
@@ -1031,7 +1038,11 @@
                 morphine_records: [
                     { datetime: '2026-06-02T08:00', type: 'Breakthrough dose', med: 'Morphine syrup 2 mg/ml', dose: 2.5, qty: '1 bottle', route: 'Oral', pain_before: 6, pain_after: 2 }
                 ],
-                narcotic2_plans: [],
+                narcotic2_plans: [
+                    { date: '2026-06-24', order_date: '2026-06-20', med_name: 'Morphine injection 10 mg/ml', dose: '10', qty: '10 แอมพูล', sig: 'ฉีดใต้ผิวหนัง ทุกๆ 4 ชม. เวลาปวดรุนแรง', indication: 'Palliative care', selected_for_print: true },
+                    { date: '2026-06-24', order_date: '2026-06-20', med_name: 'Morphine syrup 2 mg/ml (60ml)', dose: '2.5', qty: '1 ขวด', sig: 'จิบกิน 2.5 ml ทุกๆ 4 ชม. เวลาเหนื่อยหรือปวด', indication: 'Palliative care', selected_for_print: true },
+                    { date: '2026-06-24', order_date: '2026-06-15', med_name: 'Morphine injection 10 mg/ml', dose: '5', qty: '5 แอมพูล', sig: 'ฉีดใต้ผิวหนัง ทุกๆ 4 ชม. เวลาปวด', indication: 'Palliative care', selected_for_print: false }
+                ],
                 syringe_drivers: [],
                 daily_records: [
                     { mode: 'Visit', date: '2026-05-01', visitor: 'รพ.ทับคล้อ' },
@@ -1052,7 +1063,9 @@
                 pps: 60, is_pinned: false, pinned_reason: '',
                 insurance_sent: true, acp: 'Comfort care',
                 morphine_records: [],
-                narcotic2_plans: [],
+                narcotic2_plans: [
+                    { date: '2026-06-24', order_date: '2026-06-22', med_name: 'Morphine syrup 2 mg/ml (60ml)', dose: '5', qty: '2 ขวด', sig: 'กิน 5 ml ทุกๆ 4 ชั่วโมง เมื่อปวดหรือเหนื่อยหอบ', indication: 'Symptomatic Management', selected_for_print: true }
+                ],
                 syringe_drivers: [],
                 daily_records: [
                     { mode: 'OPD', date: '2026-05-20' },
@@ -1201,9 +1214,6 @@
             }
         }
 
-        // ==========================================
-        //  DOCUMENT TAB HELPERS
-        // ==========================================
         function switchDocTab(tabName) {
             document.querySelectorAll('.doc-sub-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.doc-tab-btn').forEach(el => {
@@ -1234,9 +1244,6 @@
             if(selectSyr) selectSyr.innerHTML = optionsHTML;
         }
 
-        // ==========================================
-        //  SYRINGE DRIVER SYSTEM LOGIC
-        // ==========================================
         function autoFillSyrPatient() {
             const val = document.getElementById('syr-select-patient').value;
             if(!val) {
@@ -1522,9 +1529,6 @@
             window.print();
         }
 
-        // ==========================================
-        //  PRN & NARCOTIC 2 SHEET HELPERS
-        // ==========================================
         function autoFillPRNPatient() {
             const val = document.getElementById('prn-select-patient').value;
             if(!val) return;
@@ -1749,7 +1753,10 @@
 
         function autoFillNarcoticPatient() {
             const val = document.getElementById('narc2-select-patient').value;
-            if(!val) return;
+            if(!val) {
+                clearNarc2Fields();
+                return;
+            }
             const p = patients.find(pat => pat.id == val);
             if(p) {
                 document.getElementById('narc2-pat-hn').value = p.hn;
@@ -1758,19 +1765,34 @@
                 let addrStr = p.address ? `${p.address.no || ''} ม.${p.address.moo || ''} ถ.${p.address.road || '-'} ต.${p.address.sub || ''} อ.${p.address.dist || 'ทับคล้อ'} จ.${p.address.prov || 'พิจิตร'} ${p.address.zip || '66230'}` : '-';
                 document.getElementById('narc2-pat-address').value = addrStr;
                 
+                // Load all historical morphine orders for this patient
                 tempNarc2Meds = (p.narcotic2Plans || []).map(item => ({
+                    order_date: item.order_date || item.date || new Date().toISOString().split('T')[0],
+                    date: item.date || new Date().toISOString().split('T')[0],
                     name: item.med_name,
                     indication: item.indication,
                     dose: item.dose,
                     qty: item.qty,
-                    sig: item.sig
+                    sig: item.sig,
+                    selected_for_print: item.selected_for_print !== undefined ? item.selected_for_print : true
                 }));
+                
                 renderNarc2MedsList();
             }
         }
 
+        function clearNarc2Fields() {
+            document.getElementById('narc2-pat-hn').value = '';
+            document.getElementById('narc2-pat-cid').value = '';
+            document.getElementById('narc2-pat-name').value = '';
+            document.getElementById('narc2-pat-address').value = '';
+            tempNarc2Meds = [];
+            renderNarc2MedsList();
+        }
+
         function openAddNarc2MedModal() { 
             editNarc2Index = null;
+            document.getElementById('narc-modal-order-date').value = new Date().toISOString().split('T')[0];
             document.getElementById('narc-modal-med-name').value = "Morphine injection 10 mg/ml";
             document.getElementById('narc-modal-indication').value = "Palliative care";
             document.getElementById('narc-modal-dose').value = "";
@@ -1778,10 +1800,10 @@
             document.getElementById('narc-modal-sig').value = "";
 
             const titleEl = document.querySelector('#narc2-add-med-modal h3');
-            if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-pills mr-2"></i> เพิ่มรายการยาเสพติดประเภทที่ 2';
+            if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-pills text-pink-400 mr-2"></i> สั่งใช้ยาเสพติด ป.2 เพิ่มเติม';
             
             const submitBtn = document.querySelector('#narc2-add-med-modal button[type="submit"]');
-            if (submitBtn) submitBtn.innerText = 'บันทึกเพิ่มลงใบเบิก';
+            if (submitBtn) submitBtn.innerText = 'สั่งยาลงประวัติคนไข้';
 
             document.getElementById('narc2-add-med-modal').classList.remove('hidden'); 
         }
@@ -1791,6 +1813,7 @@
             const m = tempNarc2Meds[idx];
             if(!m) return;
 
+            document.getElementById('narc-modal-order-date').value = m.order_date || new Date().toISOString().split('T')[0];
             document.getElementById('narc-modal-med-name').value = m.name;
             document.getElementById('narc-modal-indication').value = m.indication;
             document.getElementById('narc-modal-dose').value = m.dose;
@@ -1798,7 +1821,7 @@
             document.getElementById('narc-modal-sig').value = m.sig;
 
             const titleEl = document.querySelector('#narc2-add-med-modal h3');
-            if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-pen-to-square mr-2"></i> แก้ไขรายการยาเสพติดประเภทที่ 2';
+            if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-pen-to-square mr-2"></i> แก้ไขข้อมูลการสั่งยาเสพติด ป.2';
             
             const submitBtn = document.querySelector('#narc2-add-med-modal button[type="submit"]');
             if (submitBtn) submitBtn.innerText = 'บันทึกการแก้ไข';
@@ -1814,43 +1837,90 @@
         function handleNarc2AddMedSubmit(e) {
             e.preventDefault();
             const medObj = {
+                order_date: document.getElementById('narc-modal-order-date').value,
+                date: document.getElementById('narc2-date').value || new Date().toISOString().split('T')[0],
                 name: document.getElementById('narc-modal-med-name').value,
                 indication: document.getElementById('narc-modal-indication').value,
                 dose: document.getElementById('narc-modal-dose').value,
                 qty: document.getElementById('narc-modal-qty').value,
-                sig: document.getElementById('narc-modal-sig').value
+                sig: document.getElementById('narc-modal-sig').value,
+                selected_for_print: true
             };
 
             if (editNarc2Index !== null) {
                 tempNarc2Meds[editNarc2Index] = medObj;
-                showToast("แก้ไขข้อมูลรายการยาสำเร็จ");
+                showToast("แก้ไขข้อมูลรายการยาเสร็จสิ้น");
             } else {
                 tempNarc2Meds.push(medObj);
-                showToast("เพิ่มรายการยาสำเร็จ");
+                showToast("บันทึกการสั่งจ่ายยาเสพติด ป.2 ตัวใหม่แล้ว");
             }
 
             closeAddNarc2MedModal(); 
             renderNarc2MedsList();
         }
 
+        function toggleNarcPrintSelection(idx, isChecked) {
+            if (tempNarc2Meds[idx]) {
+                tempNarc2Meds[idx].selected_for_print = isChecked;
+            }
+        }
+
         function renderNarc2MedsList() {
             const body = document.getElementById('narc2-meds-list-body');
             body.innerHTML = '';
-            if(tempNarc2Meds.length === 0) {
-                body.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-gray-500">กรุณากดเพิ่มรายการยาอย่างน้อย 1 รายการเพื่อพิมพ์ออกเอกสาร</td></tr>`; return;
+            
+            const selectedPat = document.getElementById('narc2-select-patient').value;
+            if(!selectedPat) {
+                body.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-gray-500 font-medium">กรุณาเลือกคนไข้ด้านบนเพื่อเรียกดูประวัติการจ่ายยาทั้งหมด</td></tr>`;
+                return;
             }
+
+            if(tempNarc2Meds.length === 0) {
+                body.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-gray-400">ยังไม่เคยมีประวัติการสั่งใช้ยาเสพติด ป.2 ของคนไข้รายนี้ กดปุ่มสั่งใช้เพิ่มยาใหม่ได้ทันที</td></tr>`;
+                return;
+            }
+
+            // Sort by order date descending (Newest first)
+            tempNarc2Meds.sort((a, b) => new Date(b.order_date) - new Date(a.order_date));
+
+            let currentGroupDate = "";
+
             tempNarc2Meds.forEach((m, idx) => {
+                const formattedOrderDate = new Date(m.order_date).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
+                
+                // Insert visual grouping header when order date changes
+                if (m.order_date !== currentGroupDate) {
+                    currentGroupDate = m.order_date;
+                    const groupHeader = document.createElement('tr');
+                    groupHeader.className = 'bg-space-950/70 border-y border-white/10';
+                    groupHeader.innerHTML = `
+                        <td colspan="8" class="p-2.5 pl-4 font-bold text-starlight-gold text-xs tracking-wider">
+                            <i class="fa-solid fa-calendar-check mr-1.5 text-pink-500"></i> สั่งยา ณ วันที่ ${formattedOrderDate} (Order Date: ${m.order_date})
+                        </td>
+                    `;
+                    body.appendChild(groupHeader);
+                }
+
                 const tr = document.createElement('tr');
-                tr.className = 'border-b border-white/5 hover:bg-space-950/20';
+                tr.className = 'border-b border-white/5 hover:bg-space-950/20 text-xs';
+                
+                const checkedAttr = m.selected_for_print ? 'checked' : '';
+
                 tr.innerHTML = `
-                    <td class="p-2 font-bold text-white">${m.name}</td>
-                    <td class="p-2">${m.indication}</td>
-                    <td class="p-2 text-starlight-gold">${m.dose} mg/mcg</td>
-                    <td class="p-2 truncate max-w-[150px]">${m.sig}</td>
+                    <td class="p-2 text-center">
+                        <input type="checkbox" ${checkedAttr} onchange="toggleNarcPrintSelection(${idx}, this.checked)" class="space-radio rounded border-white/20">
+                    </td>
+                    <td class="p-2 font-medium text-gray-300">${m.order_date}</td>
+                    <td class="p-2 font-bold text-pink-400">${m.name}</td>
+                    <td class="p-2 text-gray-300">${m.indication}</td>
+                    <td class="p-2 text-center text-starlight-gold font-semibold">${m.dose} mg/mcg</td>
+                    <td class="p-2 truncate max-w-[200px] text-gray-300" title="${m.sig}">${m.sig}</td>
                     <td class="p-2 text-center text-green-400 font-bold">${m.qty}</td>
-                    <td class="p-2 text-center flex justify-center gap-2">
-                        <button type="button" onclick="openEditNarc2MedModal(${idx})" class="text-starlight-cyan hover:underline" title="แก้ไข"><i class="fa-solid fa-pen-to-square"></i></button>
-                        <button type="button" onclick="tempNarc2Meds.splice(${idx}, 1); renderNarc2MedsList();" class="text-red-400 hover:underline" title="ลบ"><i class="fa-solid fa-trash-can"></i></button>
+                    <td class="p-2 text-center">
+                        <div class="flex justify-center gap-2">
+                            <button type="button" onclick="openEditNarc2MedModal(${idx})" class="text-starlight-cyan hover:underline" title="แก้ไข"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button type="button" onclick="tempNarc2Meds.splice(${idx}, 1); renderNarc2MedsList(); showToast('ลบรายการยาชั่วคราวแล้ว');" class="text-red-400 hover:underline" title="ลบ"><i class="fa-solid fa-trash-can"></i></button>
+                        </div>
                     </td>
                 `;
                 body.appendChild(tr);
@@ -1864,13 +1934,16 @@
             const p = patients.find(pat => pat.id == patId);
             if(!p) return;
 
+            // Prepare payload for Supabase / Fallback
             const updatedPlans = tempNarc2Meds.map(m => ({
-                date: document.getElementById('narc2-date').value,
+                order_date: m.order_date,
+                date: document.getElementById('narc2-date').value || m.date,
                 med_name: m.name,
                 dose: m.dose,
                 qty: m.qty,
                 sig: m.sig,
-                indication: m.indication
+                indication: m.indication,
+                selected_for_print: m.selected_for_print
             }));
 
             p.narcotic2Plans = updatedPlans;
@@ -1882,78 +1955,108 @@
                         .update({ narcotic2_plans: updatedPlans })
                         .eq('id', p.id);
                     if (error) throw error;
-                    showToast('บันทึกแผนยาเสพติดประเภทที่ 2 ขึ้นระบบ Supabase สำเร็จ');
+                    showToast('บันทึกประวัติการสั่งยา ป.2 ขึ้นระบบคลาวด์ Supabase สำเร็จ');
                 } catch (err) {
                     showToast('บันทึกลงคลาวด์ล้มเหลว: ' + err.message);
                 }
             } else {
-                showToast('บันทึกแผนคำขอเบิกยาในระบบจำลองออฟไลน์สำเร็จ');
+                showToast('บันทึกแผนประวัติการสั่งยา ป.2 ในระบบจำลองออฟไลน์เรียบร้อย');
             }
         }
 
         function printNarcotic2Form() {
-            if(!document.getElementById('narc2-select-patient').value || tempNarc2Meds.length === 0) { showToast("โปรดเลือกคนไข้และเพิ่มยาลงแบบฟอร์ม"); return; }
+            if(!document.getElementById('narc2-select-patient').value) { 
+                showToast("โปรดเลือกผู้ป่วยก่อนพิมพ์เอกสาร"); 
+                return; 
+            }
+
+            // Filter only medications selected by check-boxes
+            const printableMeds = tempNarc2Meds.filter(m => m.selected_for_print === true);
+
+            if (printableMeds.length === 0) {
+                showToast("กรุณาเลือก (ติ๊กถูก) รายการยา Morphine หรือยาเสพติด ป.2 อย่างน้อย 1 รายการเพื่อพิมพ์ออกเอกสาร");
+                return;
+            }
             
             const rawDate = document.getElementById('narc2-date').value;
             const formattedDate = rawDate ? new Date(rawDate).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' }) : '..............................';
 
-            let medsRows = '';
-            tempNarc2Meds.forEach((m, idx) => {
-                let wasteSection = '';
-                if (m.name === "Morphine injection 10 mg/ml") {
-                    wasteSection = `
-                    <div style="margin-top: 10px; margin-bottom: 5px; border: 1px dashed black; padding: 10px; background-color: #fafafa; font-size: 9.5pt; line-height: 1.8;">
-                        <span style="font-weight: bold; text-decoration: underline;">บันทึกการทำลายยาเหลือทิ้ง (Waste Morphine Injection):</span><br>
-                        - ปริมาณยาที่ใช้จริง: .......................... mg (มิลลิกรัม) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-                        - ปริมาณยาเหลือทิ้ง: .......................... mg (มิลลิกรัม)<br>
-                        - ลงชื่อผู้ทิ้งยา (พยาบาล/แพทย์): ....................................................... &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-                        - ลงชื่อพยานทิ้งยา: .......................................................
-                    </div>`;
-                }
+            // Group printable meds by Order Date for clean printing layout
+            let groupedByDateHTML = "";
+            let datesOrdered = [...new Set(printableMeds.map(m => m.order_date))];
+            datesOrdered.sort((a,b) => new Date(b) - new Date(a)); // Newest order date first
 
-                medsRows += `<div style="margin-top: 15px; padding-bottom: 10px; border-bottom: 1px dashed #ccc;">
-                    <b>รายการสั่งใช้ยาเสพติดกลุ่มที่ 2 (รายการที่ ${idx+1}):</b> <span style="font-weight: bold; text-decoration: underline;">${m.name}</span><br>
-                    <b>ขนาดยาเดี่ยว:</b> ${m.dose} mg/mcg &nbsp;&nbsp;&nbsp;&nbsp; <b>ข้อบ่งชี้:</b> ${m.indication}<br>
-                    <b>วิธีใช้:</b> ${m.sig}<br>
-                    <b>จำนวนสุทธิที่ขอเบิกจ่าย:</b> <span style="font-weight: bold;">${m.qty}</span>
-                    ${wasteSection}
-                </div>`;
+            datesOrdered.forEach((odate) => {
+                const medsInDate = printableMeds.filter(m => m.order_date === odate);
+                const readableOrderDate = new Date(odate).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+
+                groupedByDateHTML += `
+                <div style="margin-top: 15px; margin-bottom: 20px; border: 1px solid black; border-radius: 6px; padding: 12px; background-color: #fafafa;">
+                    <div style="font-weight: bold; font-size: 11pt; border-bottom: 1px solid black; padding-bottom: 4px; margin-bottom: 8px; color: #111;">
+                        📅 รายการสั่งยาเสพติด ณ วันสั่งซื้อ: ${readableOrderDate}
+                    </div>
+                `;
+
+                medsInDate.forEach((m, idx) => {
+                    let wasteSection = '';
+                    if (m.name.toLowerCase().includes("injection") || m.name.toLowerCase().includes("inj")) {
+                        wasteSection = `
+                        <div style="margin-top: 8px; margin-bottom: 5px; border: 1px dashed black; padding: 6px 10px; background-color: #ffffff; font-size: 9pt; line-height: 1.6;">
+                            <span style="font-weight: bold; text-decoration: underline;">บันทึกการทำลายยาเหลือทิ้ง (Waste Morphine Injection สำหรับใช้ที่บ้าน):</span><br>
+                            - ปริมาณยาที่ใช้จริง: .......................... mg (มิลลิกรัม) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+                            - ปริมาณยาเหลือทิ้งเพื่อทําลาย: .......................... mg (มิลลิกรัม)<br>
+                            - ลงชื่อผู้ทิ้งยา (พยาบาล/แพทย์): ....................................................... &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+                            - ลงชื่อพยานทิ้งยา: .......................................................
+                        </div>`;
+                    }
+
+                    groupedByDateHTML += `
+                    <div style="margin-top: 10px; padding-bottom: 10px; ${idx < medsInDate.length - 1 ? 'border-b: 1px dashed #ccc;' : ''}">
+                        <b>รายการยาระดับ ป.2:</b> <span style="font-weight: bold; text-decoration: underline;">${m.name}</span><br>
+                        <b>ความแรงเดี่ยว:</b> ${m.dose} mg/mcg &nbsp;&nbsp;&nbsp;&nbsp; <b>ข้อบ่งชี้ทางคลินิก:</b> ${m.indication}<br>
+                        <b>วิธีใช้ละเอียด (Sig):</b> ${m.sig}<br>
+                        <b>จำนวนสั่งเบิกจ่าย:</b> <span style="font-weight: bold; font-size:11pt;">${m.qty}</span>
+                        ${wasteSection}
+                    </div>`;
+                });
+
+                groupedByDateHTML += `</div>`;
             });
 
             document.getElementById('print-container').innerHTML = `
                 <div class="print-card" style="font-family: 'Sarabun', 'Kanit', sans-serif; color: black; line-height: 1.8;">
-                    <div style="text-align: center; font-size: 16pt; font-weight: bold; margin-bottom: 20px;">ใบสั่ง/ใบขออนุมัติสั่งใช้ยาเสพติดให้โทษประเภทที่ 2 <br>โรงพยาบาลทับคล้อ</div>
-                    <div style="text-align: right; margin-bottom: 20px;"><b>วันที่:</b> ${formattedDate}</div>
+                    <div style="text-align: center; font-size: 16pt; font-weight: bold; margin-bottom: 20px;">ใบสั่ง/ใบขออนุมัติสั่งใช้ยาเสพติดให้โทษประเภทที่ 2 <br>โรงพยาบาลทับคล้อ จังหวัดพิจิตร</div>
+                    <div style="text-align: right; margin-bottom: 15px;"><b>วันที่รับเวชภัณฑ์:</b> ${formattedDate}</div>
                     
-                    <div style="margin-bottom: 20px; border-bottom: 1px solid black; padding-bottom: 15px;">
-                        <h3 style="font-size: 12pt; font-weight: bold; margin-bottom: 10px;">1. รายละเอียดแพทย์ผู้จ่ายยา</h3>
+                    <div style="margin-bottom: 15px; border-bottom: 1px solid black; padding-bottom: 10px;">
+                        <h3 style="font-size: 12pt; font-weight: bold; margin-bottom: 5px;">1. รายละเอียดแพทย์ผู้สั่งรักษา</h3>
                         <b>ชื่อแพทย์ผู้สั่งจ่าย:</b> ${document.getElementById('narc2-doc-name').value} <br>
                         <b>เลขที่ใบอนุญาตประกอบวิชาชีพเวชกรรม:</b> ว. ${document.getElementById('narc2-doc-license').value}
                     </div>
 
-                    <div style="margin-bottom: 20px; border-bottom: 1px solid black; padding-bottom: 15px;">
-                        <h3 style="font-size: 12pt; font-weight: bold; margin-bottom: 10px;">2. รายละเอียดผู้ป่วย</h3>
+                    <div style="margin-bottom: 15px; border-bottom: 1px solid black; padding-bottom: 10px;">
+                        <h3 style="font-size: 12pt; font-weight: bold; margin-bottom: 5px;">2. ข้อมูลเวชระเบียนผู้ป่วย</h3>
                         <b>ชื่อ-นามสกุล:</b> ${document.getElementById('narc2-pat-name').value} &nbsp;&nbsp;&nbsp;&nbsp; <b>HN:</b> ${document.getElementById('narc2-pat-hn').value}<br>
-                        <b>ที่อยู่:</b> ${document.getElementById('narc2-pat-address').value}
+                        <b>ที่อยู่จัดส่งบริการ:</b> ${document.getElementById('narc2-pat-address').value}
                     </div>
 
-                    <div style="margin-bottom: 20px; border-bottom: 1px solid black; padding-bottom: 15px;">
-                        <h3 style="font-size: 12pt; font-weight: bold; margin-bottom: 10px;">3. รายการยาต่างๆ (ยาเสพติด ป.2)</h3>
-                        ${medsRows}
+                    <div style="margin-bottom: 15px; border-bottom: 1px solid black; padding-bottom: 10px;">
+                        <h3 style="font-size: 12pt; font-weight: bold; margin-bottom: 5px;">3. รายการสั่งใช้ยาเสพติด ป.2 (พิมพ์เฉพาะที่เลือก)</h3>
+                        ${groupedByDateHTML}
                     </div>
 
-                    <div style="margin-top: 30px;">
-                        <h3 style="font-size: 12pt; font-weight: bold; margin-bottom: 20px;">4. ส่วนลงชื่อลายเซ็นต์</h3>
+                    <div style="margin-top: 25px;">
+                        <h3 style="font-size: 11pt; font-weight: bold; margin-bottom: 15px;">4. การรับรองคำอนุมัติและลายเซ็นแพทย์</h3>
                         <div style="display: flex; justify-content: space-between;">
                             <div style="text-align: center; width: 45%;">
-                                ลงชื่อ.............................................................. แพทย์ผู้สั่งจ่าย<br>
+                                ลงชื่อ.............................................................. แพทย์ผู้รักษาและสั่งยา<br>
                                 ( ${document.getElementById('narc2-doc-name').value} )<br>
-                                วันที่ ........./........./.........
+                                แพทย์ที่ได้รับแต่งตั้งอนุมัติการจ่ายสารเสพติด ป.2
                             </div>
                             <div style="text-align: center; width: 45%;">
-                                ลงชื่อ.............................................................. ผู้รับยา<br>
+                                ลงชื่อ.............................................................. ผู้รับเวชภัณฑ์ยาแทน<br>
                                 (....................................................................)<br>
-                                ความสัมพันธ์เกี่ยวข้อง: ....................................................
+                                ความสัมพันธ์กับผู้ป่วย: ....................................................
                             </div>
                         </div>
                     </div>
@@ -1962,9 +2065,6 @@
             window.print();
         }
 
-        // ==========================================================
-        //  PHARMACIST HUB LOGIC
-        // ==========================================================
         function processPharmacistData() {
             let activeCaseCount = 0;
             let morphInjCaseCount = 0;
@@ -2030,6 +2130,7 @@
                                 disease: p.disease,
                                 diagnosis: p.diagnosis || 'ไม่ได้ระบุ',
                                 plan_date: m.date,
+                                order_date: m.order_date || m.date,
                                 med_name: m.med_name,
                                 dose: m.dose,
                                 qty: m.qty,
@@ -2075,7 +2176,8 @@
                         <div class="text-[11px] text-gray-400 mt-0.5">HN: <span class="text-starlight-cyan font-bold">${row.hn}</span> | อายุ: ${row.age} ปี | สิทธิ์: ${row.right}</div>
                     </td>
                     <td class="p-3">
-                        <div class="text-white text-xs font-semibold">${row.plan_date}</div>
+                        <div class="text-white text-xs font-semibold">วันสั่งยา: ${row.order_date}</div>
+                        <div class="text-[10px] text-gray-400">วันรับเวชภัณฑ์: ${row.plan_date}</div>
                         <div class="text-[10px] text-pink-400 mt-0.5">${row.indication}</div>
                     </td>
                     <td class="p-3">
@@ -2106,13 +2208,13 @@
                 ["รายงานทะเบียนสรุปจากแบบคำขอเบิกยา ป.2 (Narcotic Category 2 Plans Only)"],
                 ["วันที่จัดทำรายงาน", new Date().toLocaleDateString('th-TH')],
                 [""],
-                ["HN", "ชื่อ-นามสกุล", "อายุ", "โรคประคับประคองหลัก", "วันที่ขอใช้ยา", "ข้อบ่งชี้ (Indication)", "ชื่อยาเสพติด ป.2", "ความแรงเดี่ยว", "คำสั่งใช้ยา (Sig.)", "จำนวนเบิก", "รพ.สต. พื้นที่รับผิดชอบ"]
+                ["HN", "ชื่อ-นามสกุล", "อายุ", "โรคประคับประคองหลัก", "วันที่สั่งใช้ยา", "วันที่รับยา", "ข้อบ่งชี้ (Indication)", "ชื่อยาเสพติด ป.2", "ความแรงเดี่ยว", "คำสั่งใช้ยา (Sig.)", "จำนวนเบิก", "รพ.สต. พื้นที่รับผิดชอบ"]
             ];
 
             const pData = processPharmacistData();
             pData.tableData.forEach(row => {
                 data.push([
-                    row.hn, row.name, row.age, row.disease, row.plan_date, row.indication, row.med_name, row.dose, row.sig, row.qty, row.pcu
+                    row.hn, row.name, row.age, row.disease, row.order_date, row.plan_date, row.indication, row.med_name, row.dose, row.sig, row.qty, row.pcu
                 ]);
             });
 
@@ -2133,7 +2235,7 @@
                     <tr style="border-bottom: 1px solid black; font-size: 8.5pt;">
                         <td style="padding: 6px; border-right: 1px solid black; text-align: center;">${i+1}</td>
                         <td style="padding: 6px; border-right: 1px solid black;"><b>${row.name}</b> (HN: ${row.hn})<br>อายุ ${row.age} ปี</td>
-                        <td style="padding: 6px; border-right: 1px solid black;"><b>${row.med_name}</b><br>วันที่ขอใช้: ${row.plan_date}</td>
+                        <td style="padding: 6px; border-right: 1px solid black;"><b>${row.med_name}</b><br>สั่งยาเมื่อ: ${row.order_date}<br>รับยาเมื่อ: ${row.plan_date}</td>
                         <td style="padding: 6px; border-right: 1px solid black; line-height: 1.4;">${row.sig}<br><i>Route: ${row.route}</i></td>
                         <td style="padding: 6px; border-right: 1px solid black; text-align: center; font-weight: bold;">${row.qty}</td>
                         <td style="padding: 6px; text-align: center;">${row.pcu}</td>
@@ -2153,7 +2255,7 @@
                             <tr style="background-color: #e6e6e6; border-bottom: 2px solid black;">
                                 <th style="padding: 8px; border-right: 1px solid black; width: 5%; text-align: center;">ลำดับ</th>
                                 <th style="padding: 8px; border-right: 1px solid black; width: 25%;">ผู้ป่วย</th>
-                                <th style="padding: 8px; border-right: 1px solid black; width: 25%;">รายการยา ป.2 / วันที่ขอใช้</th>
+                                <th style="padding: 8px; border-right: 1px solid black; width: 25%;">รายการยา ป.2 / วันสั่งยา</th>
                                 <th style="padding: 8px; border-right: 1px solid black; width: 27%;">วิธีใช้ / Route</th>
                                 <th style="padding: 8px; border-right: 1px solid black; width: 8%; text-align: center;">จำนวนสั่ง</th>
                                 <th style="padding: 8px; text-align: center; width: 10%;">หน่วยดูแล</th>
@@ -2166,9 +2268,6 @@
             window.print();
         }
 
-        // ==========================================
-        //  REGISTRATION LOGIC
-        // ==========================================
         async function handlePatientRegistrationSubmit(e) {
             e.preventDefault();
             const hn = document.getElementById('reg-hn').value;
@@ -2231,9 +2330,6 @@
             showToast('ดาวน์โหลดฐานข้อมูล Excel สำเร็จ');
         }
 
-        // ==========================================================
-        //  PALLIATIVE FINANCE (OPD, VISIT, DEATH) REPORT & LOGIC
-        // ==========================================================
         function populateQuickVisitPatientSelect() {
             const sel = document.getElementById('quick-visit-patient');
             if(!sel) return;
@@ -2412,7 +2508,6 @@
             patients.forEach(p => {
                 let rawRecords = p.dailyRecords || [];
                 
-                // Add to flat list for History Table
                 rawRecords.forEach((r, origIdx) => {
                     if (r && r.date) {
                         allVisitsFlatList.push({
@@ -2428,12 +2523,10 @@
                     }
                 });
 
-                // Calculation Logic
                 let pcu = p.pcu || 'PCU ทับคล้อ';
                 if (filterPcu !== 'ALL' && pcu !== filterPcu) return;
 
                 let records = [...rawRecords].filter(r => r && r.date);
-                // Sort chronologically
                 records.sort((a, b) => new Date(a.date) - new Date(b.date));
 
                 let pOpd = 0;
@@ -2474,7 +2567,7 @@
                         if (visitCount < 6) {
                             visitCount++;
                             if (isMatchMonth) {
-                                let pay = 1000; // Flat payment for calculation
+                                let pay = 1000; 
                                 pVisit += pay;
                                 totalVisit += pay;
                                 if (!monthlyRevenue[month]) monthlyRevenue[month] = { opd: 0, visit: 0, death: 0, total: 0 };
@@ -2500,7 +2593,6 @@
             });
 
             totalRevenue = totalOPD + totalVisit + totalDeath;
-            // Sort flat list by date descending
             allVisitsFlatList.sort((a, b) => new Date(b.date) - new Date(a.date));
 
             return { totalRevenue, totalOPD, totalVisit, totalDeath, monthlyRevenue, patientBreakdown, allVisitsFlatList };
@@ -2522,7 +2614,6 @@
             document.getElementById('fin-kpi-visit').innerText = data.totalVisit.toLocaleString() + ' บาท';
             document.getElementById('fin-kpi-death').innerText = data.totalDeath.toLocaleString() + ' บาท';
 
-            // 1. เรนเดอร์ตารางประวัติการบันทึกทั้งหมดเพื่อการแก้ไข/ลบ
             const historyBody = document.getElementById('fin-visits-history-body');
             if(historyBody) {
                 historyBody.innerHTML = '';
@@ -2552,7 +2643,7 @@
                             <td class="p-3 text-xs text-gray-400">${visitorText}</td>
                             <td class="p-3 text-center flex justify-center gap-2">
                                 <button onclick="openEditFinanceRecord(${item.patientId}, ${item.originalIndex})" class="text-starlight-cyan hover:text-white transition" title="แก้ไข"><i class="fa-solid fa-pen-to-square"></i></button>
-                                <button onclick="if(confirm('ต้องการลบประวัตินี้ใช่หรือไม่?')) deleteFinanceRecord(${item.patientId}, ${item.originalIndex})" class="text-red-400 hover:text-white transition" title="ลบ"><i class="fa-solid fa-trash-can"></i></button>
+                                <button onclick="deleteFinanceRecord(${item.patientId}, ${item.originalIndex})" class="text-red-400 hover:text-white transition" title="ลบ"><i class="fa-solid fa-trash-can"></i></button>
                             </td>
                         `;
                         historyBody.appendChild(tr);
@@ -2560,7 +2651,6 @@
                 }
             }
 
-            // 2. เรนเดอร์ยอดแบ่งตามรายบุคคล (Patient Breakdown)
             const body = document.getElementById('fin-breakdown-body');
             const footer = document.getElementById('fin-breakdown-footer');
             if(body && footer) {
@@ -2595,7 +2685,6 @@
                 `;
             }
 
-            // 3. กราฟสรุปผลรายเดือน (Stacked Bar Chart)
             if (finMonthlyChartInstance) finMonthlyChartInstance.destroy();
             const monthlyCanvas = document.getElementById('finMonthlyChart');
             if(monthlyCanvas) {
@@ -2623,7 +2712,6 @@
                 });
             }
 
-            // 4. กราฟสัดส่วนแหล่งรายได้ (Doughnut Chart)
             if (finSubdistrictChartInstance) finSubdistrictChartInstance.destroy();
             const sourceCanvas = document.getElementById('finSourceChart');
             if(sourceCanvas) {
@@ -2650,9 +2738,6 @@
             }
         }
 
-        // ==========================================
-        //  SMART SOAP & OPD NOTE GENERATOR LOGIC
-        // ==========================================
         let soapPatientContext = null;
 
         function autoFillSOAPFromPatient() {
@@ -2670,14 +2755,13 @@
 
             soapPatientContext = p;
             infoDiv.innerHTML = `
-                <div class="p-2 bg-space-950/60 rounded border border-starlight-cyan/20 mt-1">
+                <div class="p-2 bg-space-950/60 rounded border border-starlight-cyan/20 mt-1 text-xs">
                     <b>ชื่อ:</b> ${p.name} | <b>อายุ:</b> ${p.age} ปี <br>
                     <b>โรคหลัก:</b> ${p.disease} | <b>PPS:</b> ${p.pps}% <br>
                     <b>ACP:</b> ${p.acp || 'ไม่ได้ระบุ'}
                 </div>
             `;
             
-            // Auto fill physical parameters
             document.getElementById('soap-o-o2').value = 97;
             document.getElementById('soap-s-pain').value = p.pps < 50 ? 4 : 2;
             
@@ -2686,7 +2770,6 @@
 
         function generateSmartSOAP() {
             if(!soapPatientContext) {
-                // If not pulled from patient, try default
                 const hn = document.getElementById('smart-opd-hn').value.trim();
                 const p = patients.find(pat => pat.hn === hn);
                 if(p) soapPatientContext = p;
@@ -2700,7 +2783,6 @@
             const diag = p ? (p.diagnosis || '-') : "......";
             const acp = p ? (p.acp || 'Comfort Care Only') : "......";
 
-            // UI parameters
             const pain = document.getElementById('soap-s-pain').value;
             const symptom = document.getElementById('soap-s-symptom').value;
             const mental = document.getElementById('soap-s-mental').value;
@@ -2748,7 +2830,17 @@ ACP เจตจำนงการรักษาล่วงหน้า: ${acp
             showToast("สร้าง SOAP Note อัจฉริยะเสร็จสิ้น!");
         }
 
-        // --- Space Graphics Background ---
+        function copySmartOPDNote() {
+            const outText = document.getElementById('smart-opd-output');
+            if (!outText.value) {
+                showToast("ไม่พบข้อความสำหรับคัดลอก กรุณากดประมวลผล SOAP ก่อน");
+                return;
+            }
+            outText.select();
+            document.execCommand('copy');
+            showToast("คัดลอกข้อความบันทึก SOAP เรียบร้อยแล้ว");
+        }
+
         function initSpaceBackground() {
             const starsContainer = document.getElementById('stars-container');
             const meteorContainer = document.getElementById('meteor-container');
