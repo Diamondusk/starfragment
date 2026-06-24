@@ -73,6 +73,9 @@
 </head>
 <body class="flex h-screen overflow-hidden">
 
+    <!-- Global Datalist for Patient Selection -->
+    <datalist id="global-patient-list"></datalist>
+
     <div class="stars-bg" id="stars-container"></div>
     <div class="meteor-container" id="meteor-container"></div>
 
@@ -301,14 +304,17 @@
                             <!-- Patient Selector & Auto-fill -->
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div class="col-span-1">
-                                    <label class="block text-xs text-gray-400 mb-1">เลือกผู้ป่วยเพื่อดึงประวัติมาพิมพ์</label>
-                                    <select id="prn-select-patient" onchange="autoFillPRNPatient()" class="glass-input w-full p-2.5 rounded text-sm text-starlight-cyan"></select>
+                                    <label class="block text-xs text-gray-400 mb-1">ค้นหา HN หรือพิมพ์ชื่อผู้ป่วยเพื่อพิมพ์ประวัติ</label>
+                                    <div class="flex gap-2">
+                                        <input type="text" id="prn-search-hn" list="global-patient-list" onchange="autoFillPRNPatient()" class="glass-input w-full p-2.5 rounded text-sm text-starlight-cyan font-bold" placeholder="พิมพ์ HN หรือคลิกเลือก...">
+                                        <button type="button" onclick="autoFillPRNPatient()" class="bg-starlight-cyan/20 text-starlight-cyan hover:bg-starlight-cyan hover:text-space-950 px-3 rounded transition shrink-0"><i class="fa-solid fa-search"></i></button>
+                                    </div>
                                 </div>
-                                <div><label class="block text-xs text-gray-400 mb-1">ชื่อ-นามสกุล</label><input type="text" id="prn-pat-name" class="glass-input w-full p-2.5 rounded text-sm text-white" placeholder="ดึงข้อมูลอัตโนมัติ"></div>
-                                <div><label class="block text-xs text-gray-400 mb-1">HN</label><input type="text" id="prn-pat-hn" class="glass-input w-full p-2.5 rounded text-sm text-starlight-gold" placeholder="HN"></div>
-                                <div><label class="block text-xs text-gray-400 mb-1">เลขประจำตัวประชาชน</label><input type="text" id="prn-pat-cid" class="glass-input w-full p-2.5 rounded text-sm text-white"></div>
-                                <div><label class="block text-xs text-gray-400 mb-1">อายุ (ปี)</label><input type="number" id="prn-pat-age" class="glass-input w-full p-2.5 rounded text-sm text-white"></div>
-                                <div><label class="block text-xs text-gray-400 mb-1">ที่อยู่</label><input type="text" id="prn-pat-address" class="glass-input w-full p-2.5 rounded text-sm text-white"></div>
+                                <div><label class="block text-xs text-gray-400 mb-1">ชื่อ-นามสกุล</label><input type="text" id="prn-pat-name" readonly class="glass-input w-full p-2.5 rounded text-sm text-white" placeholder="ดึงข้อมูลอัตโนมัติ"></div>
+                                <div><label class="block text-xs text-gray-400 mb-1">HN</label><input type="text" id="prn-pat-hn" readonly class="glass-input w-full p-2.5 rounded text-sm text-starlight-gold" placeholder="HN"></div>
+                                <div><label class="block text-xs text-gray-400 mb-1">เลขประจำตัวประชาชน</label><input type="text" id="prn-pat-cid" readonly class="glass-input w-full p-2.5 rounded text-sm text-white"></div>
+                                <div><label class="block text-xs text-gray-400 mb-1">อายุ (ปี)</label><input type="number" id="prn-pat-age" readonly class="glass-input w-full p-2.5 rounded text-sm text-white"></div>
+                                <div><label class="block text-xs text-gray-400 mb-1">ที่อยู่</label><input type="text" id="prn-pat-address" readonly class="glass-input w-full p-2.5 rounded text-sm text-white"></div>
                             </div>
 
                             <!-- Medicine description header -->
@@ -377,8 +383,11 @@
                         <div class="glass-panel p-6 space-y-4">
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div class="col-span-1">
-                                    <label class="block text-xs text-gray-400 mb-1">เลือกผู้ป่วยเพื่อกรอกอัตโนมัติ</label>
-                                    <select id="narc2-select-patient" onchange="autoFillNarcoticPatient()" class="glass-input w-full p-2.5 rounded text-sm text-starlight-cyan"></select>
+                                    <label class="block text-xs text-gray-400 mb-1">ค้นหา HN หรือพิมพ์ชื่อผู้ป่วยเพื่อเรียกดู/สั่งยา</label>
+                                    <div class="flex gap-2">
+                                        <input type="text" id="narc2-search-hn" list="global-patient-list" onchange="autoFillNarcoticPatient()" class="glass-input w-full p-2.5 rounded text-sm text-starlight-cyan font-bold" placeholder="พิมพ์ HN หรือคลิกเลือก...">
+                                        <button type="button" onclick="autoFillNarcoticPatient()" class="bg-starlight-cyan/20 text-starlight-cyan hover:bg-starlight-cyan hover:text-space-950 px-3 rounded transition shrink-0"><i class="fa-solid fa-search"></i></button>
+                                    </div>
                                 </div>
                                 <div><label class="block text-xs text-gray-400 mb-1">ชื่อแพทย์ผู้สั่งการรักษา</label><input type="text" id="narc2-doc-name" value="นพ.ยตนา มาพันธ์สุ" class="glass-input w-full p-2.5 rounded text-sm"></div>
                                 <div><label class="block text-xs text-gray-400 mb-1">เลขที่ใบประกอบวิชาชีพ (เลข ว.)</label><input type="text" id="narc2-doc-license" value="67650" class="glass-input w-full p-2.5 rounded text-sm"></div>
@@ -424,7 +433,7 @@
                                             </tr>
                                         </thead>
                                         <tbody id="narc2-meds-list-body">
-                                            <tr><td colspan="8" class="p-4 text-center text-gray-500">กรุณาเลือกคนไข้ด้านบนเพื่อเรียกดูประวัติการจ่ายยาทั้งหมด</td></tr>
+                                            <tr><td colspan="8" class="p-4 text-center text-gray-500">กรุณาพิมพ์ค้นหาผู้ป่วยด้านบนเพื่อเรียกดูประวัติการจ่ายยาทั้งหมด</td></tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -450,8 +459,11 @@
                             <!-- Patient Info -->
                             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                                 <div class="col-span-1 md:col-span-2">
-                                    <label class="block text-xs text-gray-400 mb-1">เลือกผู้ป่วย</label>
-                                    <select id="syr-select-patient" onchange="autoFillSyrPatient()" class="glass-input w-full p-2.5 rounded text-sm text-starlight-cyan"></select>
+                                    <label class="block text-xs text-gray-400 mb-1">ค้นหา HN หรือพิมพ์ชื่อผู้ป่วยเพื่อสั่งอุปกรณ์</label>
+                                    <div class="flex gap-2">
+                                        <input type="text" id="syr-search-hn" list="global-patient-list" onchange="autoFillSyrPatient()" class="glass-input w-full p-2.5 rounded text-sm text-starlight-cyan font-bold" placeholder="พิมพ์ HN หรือคลิกเลือก...">
+                                        <button type="button" onclick="autoFillSyrPatient()" class="bg-starlight-cyan/20 text-starlight-cyan hover:bg-starlight-cyan hover:text-space-950 px-3 rounded transition shrink-0"><i class="fa-solid fa-search"></i></button>
+                                    </div>
                                 </div>
                                 <div><label class="block text-xs text-gray-400 mb-1">HN</label><input type="text" id="syr-pat-hn" readonly class="glass-input w-full p-2.5 rounded text-sm text-gray-400"></div>
                                 <div><label class="block text-xs text-gray-400 mb-1">วันที่สั่งใช้</label><input type="date" id="syr-date" class="glass-input w-full p-2.5 rounded text-sm text-starlight-gold"></div>
@@ -670,8 +682,8 @@
                     <form onsubmit="handleQuickFinanceRecordSubmit(event)" class="space-y-2">
                         <div class="grid grid-cols-1 gap-2">
                             <div>
-                                <label class="block text-[10px] text-gray-400">เลือกผู้ป่วย</label>
-                                <select id="quick-visit-patient" required class="glass-input w-full p-1.5 rounded text-xs text-white"></select>
+                                <label class="block text-[10px] text-gray-400">ค้นหา HN หรือเลือกผู้ป่วย</label>
+                                <input type="text" id="quick-visit-hn" list="global-patient-list" required class="glass-input w-full p-1.5 rounded text-xs text-white" placeholder="พิมพ์ HN หรือเลือก...">
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-2">
@@ -798,7 +810,7 @@
                     <div class="glass-panel p-5 border border-white/10">
                         <h3 class="text-sm font-bold text-starlight-cyan mb-3"><i class="fa-solid fa-search"></i> 1. ดึงข้อมูลคนไข้</h3>
                         <div class="flex gap-2">
-                            <input type="text" id="smart-opd-hn" class="glass-input flex-1 p-2 rounded text-sm text-starlight-cyan font-bold" placeholder="กรอก HN เช่น 1234567" value="1234567">
+                            <input type="text" id="smart-opd-hn" list="global-patient-list" class="glass-input flex-1 p-2 rounded text-sm text-starlight-cyan font-bold" placeholder="กรอก HN หรือเลือก..." value="1234567">
                             <button onclick="autoFillSOAPFromPatient()" class="bg-starlight-cyan text-space-950 font-bold px-3 py-2 rounded text-xs hover:bg-white transition shrink-0">ดึงข้อมูล</button>
                         </div>
                         <div class="mt-2 text-xs text-gray-400" id="soap-patient-info">ไม่ได้ดึงข้อมูลผู้ป่วยใด ๆ</div>
@@ -1155,7 +1167,21 @@
                 dailyRecords: p.daily_records || p.dailyRecords || []
             }));
 
-            populateQuickVisitPatientSelect();
+            populateGlobalDatalist();
+        }
+
+        function populateGlobalDatalist() {
+            let dl = document.getElementById('global-patient-list');
+            if (!dl) {
+                dl = document.createElement('datalist');
+                dl.id = 'global-patient-list';
+                document.body.appendChild(dl);
+            }
+            let html = '';
+            patients.forEach(p => {
+                html += `<option value="${p.hn}">${p.name} (HN: ${p.hn})</option>`;
+            });
+            dl.innerHTML = html;
         }
 
         window.onload = async function() {
@@ -1202,7 +1228,6 @@
             await fetchPatients();
 
             if(viewId === 'document-center') {
-                populatePatientDocSelects();
                 renderNarc2MedsList();
                 renderPRNMedTable();
             }
@@ -1229,29 +1254,15 @@
             }
         }
 
-        function populatePatientDocSelects() {
-            const selectNarc = document.getElementById('narc2-select-patient');
-            const selectPRN = document.getElementById('prn-select-patient');
-            const selectSyr = document.getElementById('syr-select-patient');
-            
-            let optionsHTML = '<option value="">-- กรุณาเลือกคนไข้ --</option>';
-            patients.forEach(p => {
-                optionsHTML += `<option value="${p.id}">${p.name} (HN: ${p.hn})</option>`;
-            });
-
-            if(selectNarc) selectNarc.innerHTML = optionsHTML;
-            if(selectPRN) selectPRN.innerHTML = optionsHTML;
-            if(selectSyr) selectSyr.innerHTML = optionsHTML;
-        }
-
         function autoFillSyrPatient() {
-            const val = document.getElementById('syr-select-patient').value;
+            const val = document.getElementById('syr-search-hn').value.trim();
             if(!val) {
                 document.getElementById('syr-pat-hn').value = '';
                 return;
             }
-            const p = patients.find(pat => pat.id == val);
+            const p = patients.find(pat => pat.hn === val || pat.name.includes(val));
             if(p) {
+                document.getElementById('syr-search-hn').value = p.hn;
                 document.getElementById('syr-pat-hn').value = p.hn;
                 
                 if (p.syringeDrivers && p.syringeDrivers.length > 0) {
@@ -1266,6 +1277,8 @@
                 }
                 
                 renderSyrMedsTable();
+            } else {
+                showToast("ไม่พบข้อมูลผู้ป่วย");
             }
         }
 
@@ -1388,11 +1401,11 @@
         }
 
         async function saveSyringeDriverToPatientDB() {
-            const patId = document.getElementById('syr-select-patient').value;
-            if(!patId) { showToast("โปรดเลือกคนไข้ก่อนเซฟข้อมูล"); return; }
+            const val = document.getElementById('syr-search-hn').value.trim();
+            if(!val) { showToast("โปรดเลือกคนไข้ก่อนเซฟข้อมูล"); return; }
             
-            const p = patients.find(pat => pat.id == patId);
-            if(!p) return;
+            const p = patients.find(pat => pat.hn === val || pat.name.includes(val));
+            if(!p) { showToast("ไม่พบข้อมูลผู้ป่วย"); return; }
 
             const newDriverObj = {
                 date: document.getElementById('syr-date').value,
@@ -1420,10 +1433,12 @@
         }
 
         function printSyringeDriverForm() {
-            const patId = document.getElementById('syr-select-patient').value;
-            if(!patId) { showToast("โปรดเลือกคนไข้ก่อนพิมพ์เอกสาร"); return; }
+            const val = document.getElementById('syr-search-hn').value.trim();
+            if(!val) { showToast("โปรดเลือกคนไข้ก่อนพิมพ์เอกสาร"); return; }
             
-            const p = patients.find(pat => pat.id == patId);
+            const p = patients.find(pat => pat.hn === val || pat.name.includes(val));
+            if(!p) { showToast("ไม่พบข้อมูลผู้ป่วย"); return; }
+
             const dateStr = new Date(document.getElementById('syr-date').value).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
             const summaryString = document.getElementById('syr-summary-output').value;
 
@@ -1530,10 +1545,11 @@
         }
 
         function autoFillPRNPatient() {
-            const val = document.getElementById('prn-select-patient').value;
+            const val = document.getElementById('prn-search-hn').value.trim();
             if(!val) return;
-            const p = patients.find(pat => pat.id == val);
+            const p = patients.find(pat => pat.hn === val || pat.name.includes(val));
             if(p) {
+                document.getElementById('prn-search-hn').value = p.hn;
                 document.getElementById('prn-pat-name').value = p.name;
                 document.getElementById('prn-pat-hn').value = p.hn;
                 document.getElementById('prn-pat-cid').value = p.cid || '';
@@ -1549,6 +1565,8 @@
                     pain_after: r.pain_after
                 }));
                 renderPRNMedTable();
+            } else {
+                showToast("ไม่พบข้อมูลผู้ป่วย");
             }
         }
 
@@ -1596,11 +1614,11 @@
         }
 
         async function savePRNToPatientDB() {
-            const patId = document.getElementById('prn-select-patient').value;
-            if(!patId) { showToast("โปรดเลือกคนไข้ก่อนกดบันทึก"); return; }
+            const val = document.getElementById('prn-search-hn').value.trim();
+            if(!val) { showToast("โปรดเลือกคนไข้ก่อนกดบันทึก"); return; }
             
-            const p = patients.find(pat => pat.id == patId);
-            if(!p) return;
+            const p = patients.find(pat => pat.hn === val || pat.name.includes(val));
+            if(!p) { showToast("ไม่พบข้อมูลผู้ป่วย"); return; }
 
             const dbRecords = tempPRNRecords.map(r => ({
                 datetime: `${r.date}T${r.time}`,
@@ -1689,10 +1707,10 @@
         }
 
         function exportSingleMorphineToExcel() {
-            const val = document.getElementById('prn-select-patient').value;
+            const val = document.getElementById('prn-search-hn').value.trim();
             if(!val) { showToast("โปรดเลือกคนไข้ก่อน Export ข้อมูล"); return; }
-            const p = patients.find(pat => pat.id == val);
-            if(!p) return;
+            const p = patients.find(pat => pat.hn === val || pat.name.includes(val));
+            if(!p) { showToast("ไม่พบข้อมูลผู้ป่วย"); return; }
 
             const header = [
                 ["ระบบบริการการดูแลประคับประคอง รพ.ทับคล้อ (Starlight Palliative Care)"],
@@ -1752,13 +1770,14 @@
         }
 
         function autoFillNarcoticPatient() {
-            const val = document.getElementById('narc2-select-patient').value;
+            const val = document.getElementById('narc2-search-hn').value.trim();
             if(!val) {
                 clearNarc2Fields();
                 return;
             }
-            const p = patients.find(pat => pat.id == val);
+            const p = patients.find(pat => pat.hn === val || pat.name.includes(val));
             if(p) {
+                document.getElementById('narc2-search-hn').value = p.hn;
                 document.getElementById('narc2-pat-hn').value = p.hn;
                 document.getElementById('narc2-pat-cid').value = p.cid || '';
                 document.getElementById('narc2-pat-name').value = p.name;
@@ -1778,6 +1797,9 @@
                 }));
                 
                 renderNarc2MedsList();
+            } else {
+                showToast("ไม่พบข้อมูลผู้ป่วย");
+                clearNarc2Fields();
             }
         }
 
@@ -1869,9 +1891,9 @@
             const body = document.getElementById('narc2-meds-list-body');
             body.innerHTML = '';
             
-            const selectedPat = document.getElementById('narc2-select-patient').value;
+            const selectedPat = document.getElementById('narc2-search-hn').value;
             if(!selectedPat) {
-                body.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-gray-500 font-medium">กรุณาเลือกคนไข้ด้านบนเพื่อเรียกดูประวัติการจ่ายยาทั้งหมด</td></tr>`;
+                body.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-gray-500 font-medium">กรุณาพิมพ์ค้นหาผู้ป่วยด้านบนเพื่อเรียกดูประวัติการจ่ายยาทั้งหมด</td></tr>`;
                 return;
             }
 
@@ -1928,11 +1950,11 @@
         }
 
         async function saveNarcotic2ToPatientDB() {
-            const patId = document.getElementById('narc2-select-patient').value;
-            if(!patId) { showToast("โปรดเลือกคนไข้ก่อนเซฟข้อมูล"); return; }
+            const val = document.getElementById('narc2-search-hn').value.trim();
+            if(!val) { showToast("โปรดเลือกคนไข้ก่อนเซฟข้อมูล"); return; }
             
-            const p = patients.find(pat => pat.id == patId);
-            if(!p) return;
+            const p = patients.find(pat => pat.hn === val || pat.name.includes(val));
+            if(!p) { showToast("ไม่พบข้อมูลผู้ป่วย"); return; }
 
             // Prepare payload for Supabase / Fallback
             const updatedPlans = tempNarc2Meds.map(m => ({
@@ -1965,7 +1987,8 @@
         }
 
         function printNarcotic2Form() {
-            if(!document.getElementById('narc2-select-patient').value) { 
+            const val = document.getElementById('narc2-search-hn').value.trim();
+            if(!val) { 
                 showToast("โปรดเลือกผู้ป่วยก่อนพิมพ์เอกสาร"); 
                 return; 
             }
@@ -2310,7 +2333,7 @@
                 newPatientObj.id = patients.length + 1;
                 patients.push(newPatientObj);
                 showToast('ลงทะเบียนประวัติผู้ป่วยสำเร็จ (ระบบออฟไลน์)');
-                populateQuickVisitPatientSelect();
+                populateGlobalDatalist();
             }
         }
 
@@ -2330,16 +2353,6 @@
             showToast('ดาวน์โหลดฐานข้อมูล Excel สำเร็จ');
         }
 
-        function populateQuickVisitPatientSelect() {
-            const sel = document.getElementById('quick-visit-patient');
-            if(!sel) return;
-            let html = '<option value="">-- เลือกผู้ป่วย --</option>';
-            patients.forEach(p => {
-                html += `<option value="${p.id}">${p.name} (HN: ${p.hn})</option>`;
-            });
-            sel.innerHTML = html;
-        }
-
         function toggleFinType() {
             const type = document.getElementById('quick-fin-type').value;
             const visitorDiv = document.getElementById('quick-visitor-container');
@@ -2352,14 +2365,14 @@
 
         async function handleQuickFinanceRecordSubmit(e) {
             e.preventDefault();
-            const patId = document.getElementById('quick-visit-patient').value;
+            const searchVal = document.getElementById('quick-visit-hn').value.trim();
             const type = document.getElementById('quick-fin-type').value;
             const date = document.getElementById('quick-visit-date').value;
             const visitor = document.getElementById('quick-visit-visitor').value;
 
-            if(!patId || !date) { showToast("กรุณากรอกข้อมูลให้ครบถ้วน"); return; }
-            const p = patients.find(pat => pat.id == patId);
-            if(!p) return;
+            if(!searchVal || !date) { showToast("กรุณากรอกข้อมูลให้ครบถ้วน"); return; }
+            const p = patients.find(pat => pat.hn === searchVal || pat.name.includes(searchVal));
+            if(!p) { showToast("ไม่พบข้อมูลผู้ป่วยที่เลือก"); return; }
 
             const newRecord = { mode: type, date: date };
             if (type === 'Visit') {
@@ -2745,15 +2758,16 @@
             const infoDiv = document.getElementById('soap-patient-info');
             if(!hn) { showToast("กรุณากรอก HN ของผู้ป่วย"); return; }
             
-            const p = patients.find(pat => pat.hn === hn);
+            const p = patients.find(pat => pat.hn === hn || pat.name.includes(hn));
             if(!p) {
-                showToast("ไม่พบข้อมูลผู้ป่วยที่มี HN นี้ในระบบ");
+                showToast("ไม่พบข้อมูลผู้ป่วยที่มี HN หรือชื่อนี้ในระบบ");
                 soapPatientContext = null;
                 infoDiv.innerText = "ไม่พบข้อมูลผู้ป่วยในระบบ";
                 return;
             }
 
             soapPatientContext = p;
+            document.getElementById('smart-opd-hn').value = p.hn;
             infoDiv.innerHTML = `
                 <div class="p-2 bg-space-950/60 rounded border border-starlight-cyan/20 mt-1 text-xs">
                     <b>ชื่อ:</b> ${p.name} | <b>อายุ:</b> ${p.age} ปี <br>
@@ -2771,7 +2785,7 @@
         function generateSmartSOAP() {
             if(!soapPatientContext) {
                 const hn = document.getElementById('smart-opd-hn').value.trim();
-                const p = patients.find(pat => pat.hn === hn);
+                const p = patients.find(pat => pat.hn === hn || pat.name.includes(hn));
                 if(p) soapPatientContext = p;
             }
 
